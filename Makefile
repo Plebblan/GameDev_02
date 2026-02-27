@@ -1,23 +1,18 @@
-# Compiler
 CXX = g++
+CXXFLAGS = -Wall -Wextra -std=c++17
+SDLFLAGS = $(shell pkg-config --cflags --libs sdl3)
 
-# Compiler flags
-CXXFLAGS = -Wall -std=c++17
+SRC = src/main.cpp src/arena.cpp src/ball.cpp
+OBJ = $(SRC:.cpp=.o)
+OUT = game.exe
 
-# Libraries
-LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
+all: $(OUT)
 
-# Source files
-SRC = src/main.cpp src/Arena.cpp src/Ball.cpp
+$(OUT): $(OBJ)
+	$(CXX) $(OBJ) -o $(OUT) $(SDLFLAGS)
 
-# Output
-TARGET = game
-
-all:
-	$(CXX) $(SRC) -o $(TARGET) $(CXXFLAGS) $(LIBS)
-
-run: all
-	./$(TARGET).exe
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(TARGET).exe
+	rm -f $(OBJ) $(OUT)

@@ -1,66 +1,72 @@
 #include "ball.h"
 #include <cmath>
-static constexpr float GRAVITY = 80.0f;      // VERY weak gravity
-static constexpr float RESTITUTION = 0.98f;  // Almost no energy loss
-static constexpr float MIN_BOUNCE_SPEED = 40.0f;
 
-Ball::Ball(float startX, float startY)
+static constexpr float GRAVITY = 10.0f;        // Very weak gravity
+static constexpr float BOUNCE_DAMPING = 0.995f; // Very small energy loss
+
+Ball::Ball(float startX, float startY, float size)
+    : m_velX(250.0f), m_velY(200.0f), m_speed(300.0f)
 {
-    position = { startX, startY };
-
-    // Initial velocity (diagonal)
-    velocity = { 400.0f, 300.0f };
-
-    radius = 15.0f;
+    m_rect = {
+        startX,
+        startY,
+        size,
+        size
+    };
 }
-// Remove after testing
 
-void Ball::Update(float dt, const Arena& arena)
+void Ball::Update(float deltaTime)
 {
     // Apply weak gravity
-    velocity.y += GRAVITY * dt;
+    m_velY += GRAVITY * deltaTime;
 
     // Move
-    position.x += velocity.x * dt;
-    position.y += velocity.y * dt;
+    m_rect.x += m_velX * deltaTime;
+    m_rect.y += m_velY * deltaTime;
+}
 
-    // Left wall
-    if (position.x - radius <= arena.GetLeft())
+void Ball::Render(SDL_Renderer* renderer) const
+{
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+
+    float radius = m_rect.w / 2.0f;
+    float centerX = m_rect.x + radius;
+    float centerY = m_rect.y + radius;
+
+    for (int w = 0; w < radius * 2; w++)
     {
-        position.x = arena.GetLeft() + radius;
-        velocity.x *= -1.0f;
-    }
-
-    // Right wall
-    if (position.x + radius >= arena.GetRight())
-    {
-        position.x = arena.GetRight() - radius;
-        velocity.x *= -1.0f;
-    }
-
-    // Ceiling
-    if (position.y - radius <= arena.GetTop())
-    {
-        position.y = arena.GetTop() + radius;
-        velocity.y *= -RESTITUTION;
-    }
-
-    // Floor
-    if (position.y + radius >= arena.GetBottom())
-    {
-        position.y = arena.GetBottom() - radius;
-
-        velocity.y *= -RESTITUTION;
-
-        // Prevent tiny infinite bouncing
-        if (fabs(velocity.y) < MIN_BOUNCE_SPEED)
+        for (int h = 0; h < radius * 2; h++)
         {
-            velocity.y = -MIN_BOUNCE_SPEED;
+            float dx = radius - w;
+            float dy = radius - h;
+
+            if ((dx * dx + dy * dy) <= (radius * radius))
+            {
+                SDL_RenderPoint(renderer,
+                    static_cast<int>(centerX + dx),
+                    static_cast<int>(centerY + dy));
+            }
         }
     }
 }
 
-void Ball::Draw() const
+SDL_FRect& Ball::GetRect()
 {
-    DrawCircleV(position, radius, RED);
+    return m_rect;
+}
+
+float& Ball::GetVelX()
+{
+    return m_velX;
+}
+
+float& Ball::GetVelY()
+{
+    return m_velY;
+}
+
+void Ball::SetVelocity(float vx, float vy)
+{
+    m_velX = vx;
+    m_velY = vy;
 }

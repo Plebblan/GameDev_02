@@ -1,21 +1,30 @@
-#pragma once
-#include "raylib.h"
+#ifndef ARENA_H
+#define ARENA_H
+
+#include <SDL3/SDL.h>
 
 class Arena
 {
-private:
-    float left;
-    float right;
-    float top;
-    float bottom;
-
 public:
-    Arena(float width, float height);
+    Arena(int width = 1280, int height = 720, int wallThickness = 10);
 
-    void Draw() const;
+    void Render(SDL_Renderer* renderer) const;
 
-    float GetLeft() const;
-    float GetRight() const;
-    float GetTop() const;
-    float GetBottom() const;
+    // Checks collision and modifies velocity for ricochet
+    void CheckCollision(SDL_FRect& ballRect, float& velX, float& velY) const;
+
+    int GetWidth() const { return m_width; }
+    int GetHeight() const { return m_height; }
+
+private:
+    int m_width;
+    int m_height;
+    int m_wallThickness;
+
+    SDL_FRect m_topWall;
+    SDL_FRect m_bottomWall;
+    SDL_FRect m_leftWall;
+    SDL_FRect m_rightWall;
 };
+
+#endif
