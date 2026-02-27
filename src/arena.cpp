@@ -1,7 +1,7 @@
 #include "arena.h"
 #include <cmath>
 
-static constexpr float BOUNCE_LOSS = 15.0f;
+static constexpr float BOUNCE_LOSS = 5.0f;
 
 Arena::Arena(int width, int height, int wallThickness)
     : m_width(width), m_height(height), m_wallThickness(wallThickness)
