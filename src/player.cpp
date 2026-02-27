@@ -12,6 +12,7 @@ Player::Player(float startX, float startY)
       m_velY(0.0f),
       m_moveSpeed(300.0f),
       m_jumpStrength(500.0f),
+      m_doubleJumpStrength(350.0f),
       m_isGrounded(false),
       m_jumpHeld(false),
       m_jumpHoldTime(0.0f),
@@ -64,7 +65,17 @@ void Player::HandleInput(const bool* keyboardState)
     {
         if (m_isGrounded || m_jumpCount < m_maxJumps)
         {
-            m_velY = -m_jumpStrength;
+            if (m_jumpCount == 0)
+            {
+                // Ground jump
+                m_velY = -m_jumpStrength;
+            }
+            else
+            {
+                // Air jump (weaker)
+                m_velY = 0.0f;
+                m_velY = -m_doubleJumpStrength;
+            }
             m_isGrounded = false;
             m_jumpHeld = true;
             m_jumpHoldTime = 0.0f;
