@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
 
     // --- Create Game Objects ---
     Arena arena;
-    Ball ball(640.0f - 10.0f, 200.0f, 20.0f);
-    Player player(600.0f, 500.0f);
+    Ball ball(Vector2(640.0f - 10.0f, 200.0f), 20.0f);
+    Player player(Vector2(600.0f, 500.0f));
 
     bool running = true;
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
         // ---- Update ----
         ball.Update(deltaTime);
-        arena.CheckCollision(ball.GetRect(), ball.GetVelX(), ball.GetVelY());
+        arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
         player.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
 

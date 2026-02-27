@@ -4,12 +4,12 @@
 static constexpr float GRAVITY = 10.0f;        // Very weak gravity
 static constexpr float BOUNCE_LOSS= 5.0f;     // Very small energy loss
 
-Ball::Ball(float startX, float startY, float size)
-    : m_velX(0.0f), m_velY(0.0f), m_speed(0.0f)
+Ball::Ball(Vector2 pos, float size)
+    : m_vel(Vector2()), m_speed(0.0f)
 {
     m_rect = {
-        startX,
-        startY,
+        pos.x,
+        pos.y,
         size,
         size
     };
@@ -18,11 +18,11 @@ Ball::Ball(float startX, float startY, float size)
 void Ball::Update(float deltaTime)
 {
     // Apply weak gravity
-    m_velY += GRAVITY * deltaTime;
+    m_vel.y += GRAVITY * deltaTime;
 
     // Move
-    m_rect.x += m_velX * deltaTime;
-    m_rect.y += m_velY * deltaTime;
+    m_rect.x += m_vel.x * deltaTime;
+    m_rect.y += m_vel.y * deltaTime;
 }
 
 void Ball::Render(SDL_Renderer* renderer) const
@@ -55,18 +55,11 @@ SDL_FRect& Ball::GetRect()
     return m_rect;
 }
 
-float& Ball::GetVelX()
-{
-    return m_velX;
+Vector2& Ball::getVelocity(){
+    return m_vel;
 }
 
-float& Ball::GetVelY()
+void Ball::setVelocity(Vector2 vel)
 {
-    return m_velY;
-}
-
-void Ball::SetVelocity(float vx, float vy)
-{
-    m_velX = vx;
-    m_velY = vy;
+    m_vel.set(vel);
 }

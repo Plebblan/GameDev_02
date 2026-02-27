@@ -1,7 +1,8 @@
 #ifndef ARENA_H
 #define ARENA_H
 
-#include <SDL3/SDL.h>
+#include "game.h"
+#include <cmath>
 
 class Arena
 {
@@ -11,7 +12,7 @@ public:
     void Render(SDL_Renderer* renderer) const;
 
     // Checks collision and modifies velocity for ricochet
-    void CheckCollision(SDL_FRect& ballRect, float& velX, float& velY) const;
+    void CheckCollision(SDL_FRect& ballRect, Vector2 &vel) const;
 
     int GetWidth() const { return m_width; }
     int GetHeight() const { return m_height; }

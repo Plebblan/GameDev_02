@@ -1,28 +1,24 @@
 #ifndef BALL_H
 #define BALL_H
 
-#include <SDL3/SDL.h>
+#include "game.h"
 
 class Ball
 {
 public:
-    Ball(float startX, float startY, float size = 20.0f);
+    Ball(Vector2 pos, float size = 20.0f);
 
     void Update(float deltaTime);
     void Render(SDL_Renderer* renderer) const;
 
     SDL_FRect& GetRect();
-    float& GetVelX();
-    float& GetVelY();
+    Vector2& getVelocity();
 
-    void SetVelocity(float vx, float vy);
+    void setVelocity(Vector2 vel);
 
 private:
     SDL_FRect m_rect;
-
-    float m_velX;
-    float m_velY;
-
+    Vector2 m_vel;
     float m_speed;
 };
 

@@ -6,7 +6,7 @@ double round_3dec(double val) {
 
 //====================Vec2====================
 Vector2::Vector2() {
-	this->x = this->y = 0;
+	this->x = this->y = 0.0;
 }
 
 Vector2::Vector2(float x, float y) {
@@ -69,6 +69,11 @@ double Vector2::angle(Vector2 v) { //Note that this function returns DEG
 void Vector2::set(float x, float y) {
 	this->x = x;
 	this->y = y;
+}
+
+void Vector2::set(Vector2 vec){
+    this->x = vec.x;
+    this->y = vec.y;
 }
 
 void Vector2::fromAngle(double angle) { //Note that this function takes DEG arguments

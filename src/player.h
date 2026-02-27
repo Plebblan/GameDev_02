@@ -1,7 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <SDL3/SDL.h>
+#include "game.h"
+#include "ball.h"
+#include <cmath>
 
 class Ball;
 
@@ -17,7 +19,7 @@ enum class AttackDirection
 class Player
 {
 public:
-    Player(float startX, float startY);
+    Player(Vector2 pos);
 
     void HandleInput(const bool* keyboardState);
     void Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness);
@@ -27,8 +29,7 @@ public:
 private:
     SDL_FRect m_rect;
 
-    float m_velX;
-    float m_velY;
+    Vector2 m_vel;
 
     float m_moveSpeed;
     float m_jumpStrength;

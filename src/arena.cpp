@@ -1,5 +1,4 @@
 #include "arena.h"
-#include <cmath>
 
 static constexpr float BOUNCE_LOSS = 5.0f;
 
@@ -50,45 +49,45 @@ void Arena::Render(SDL_Renderer* renderer) const
     SDL_RenderFillRect(renderer, &m_rightWall);
 }
 
-void Arena::CheckCollision(SDL_FRect& ballRect, float& velX, float& velY) const
+void Arena::CheckCollision(SDL_FRect& ballRect, Vector2 &vel) const
 {
     // Left wall
     if (ballRect.x <= m_wallThickness)
     {
         ballRect.x = static_cast<float>(m_wallThickness);
-        velX = -velX; // reverse direction
+        vel.x = -vel.x; // reverse direction
 
-        float sign = (velX >= 0.0f) ? 1.0f : -1.0f;
-        velX = sign * std::max(0.0f, std::abs(velX) - BOUNCE_LOSS);
+        float sign = (vel.x >= 0.0f) ? 1.0f : -1.0f;
+        vel.x = sign * std::max(0.0f, std::abs(vel.x) - BOUNCE_LOSS);
     }
 
     // Right wall
     if (ballRect.x + ballRect.w >= m_width - m_wallThickness)
     {
         ballRect.x = static_cast<float>(m_width - m_wallThickness - ballRect.w);
-        velX = -velX; // reverse direction
+        vel.x = -vel.x; // reverse direction
 
-        float sign = (velX >= 0.0f) ? 1.0f : -1.0f;
-        velX = sign * std::max(0.0f, std::abs(velX) - BOUNCE_LOSS);
+        float sign = (vel.x >= 0.0f) ? 1.0f : -1.0f;
+        vel.x = sign * std::max(0.0f, std::abs(vel.x) - BOUNCE_LOSS);
     }
 
     // Top wall
     if (ballRect.y <= m_wallThickness)
     {
         ballRect.y = static_cast<float>(m_wallThickness);
-        velY = -velY;
-
-        float sign = (velY >= 0.0f) ? 1.0f : -1.0f;
-        velY = sign * std::max(0.0f, std::abs(velY) - BOUNCE_LOSS);
+        vel.y = -vel.y;
+        
+        float sign = (vel.y >= 0.0f) ? 1.0f : -1.0f;
+        vel.y = sign * std::max(0.0f, std::abs(vel.y) - BOUNCE_LOSS);
     }
 
     // Bottom wall
     if (ballRect.y + ballRect.h >= m_height - m_wallThickness)
     {
         ballRect.y = static_cast<float>(m_height - m_wallThickness - ballRect.h);
-        velY = -velY;
+        vel.y = -vel.y;
 
-        float sign = (velY >= 0.0f) ? 1.0f : -1.0f;
-        velY = sign * std::max(0.0f, std::abs(velY) - BOUNCE_LOSS);
+        float sign = (vel.y >= 0.0f) ? 1.0f : -1.0f;
+        vel.y = sign * std::max(0.0f, std::abs(vel.y) - BOUNCE_LOSS);
     }
 }

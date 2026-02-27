@@ -1,15 +1,12 @@
 #include "player.h"
-#include "ball.h"
-#include <cmath>
 
 static constexpr float GRAVITY = 900.0f;
 static constexpr float HOLD_GRAVITY = 400.0f;   // Reduced gravity while holding jump
 static constexpr float MAX_HOLD_TIME = 0.25f;   // Max time jump can be extended
 static constexpr float JUMP_CUT_MULTIPLIER = 0.5f; // Cuts upward velocity if released early
 
-Player::Player(float startX, float startY)
-    : m_velX(0.0f),
-      m_velY(0.0f),
+Player::Player(Vector2 pos)
+    : m_vel(Vector2()),
       m_moveSpeed(300.0f),
       m_jumpStrength(500.0f),
       m_doubleJumpStrength(350.0f),
@@ -25,7 +22,7 @@ Player::Player(float startX, float startY)
       m_maxJumps(2),
       m_jumpPressedLastFrame(false)
 {
-    m_rect = { startX, startY, 20.0f, 60.0f };
+    m_rect = { pos.x, pos.y, 20.0f, 60.0f };
 }
 
 void Player::HandleInput(const bool* keyboardState)
@@ -36,17 +33,17 @@ void Player::HandleInput(const bool* keyboardState)
     bool down  = keyboardState[SDL_SCANCODE_S];
     bool jump  = keyboardState[SDL_SCANCODE_SPACE];
 
-    m_velX = 0.0f;
+    m_vel.x = 0.0f;
 
     // Movement + horizontal facing memory
     if (left)
     {
-        m_velX = -m_moveSpeed;
+        m_vel.x = -m_moveSpeed;
         m_facing = AttackDirection::Left;
     }
     else if (right)
     {
-        m_velX = m_moveSpeed;
+        m_vel.x = m_moveSpeed;
         m_facing = AttackDirection::Right;
     }
 
@@ -68,13 +65,13 @@ void Player::HandleInput(const bool* keyboardState)
             if (m_jumpCount == 0)
             {
                 // Ground jump
-                m_velY = -m_jumpStrength;
+                m_vel.y = -m_jumpStrength;
             }
             else
             {
                 // Air jump (weaker)
-                m_velY = 0.0f;
-                m_velY = -m_doubleJumpStrength;
+                m_vel.y = 0.0f;
+                m_vel.y = -m_doubleJumpStrength;
             }
             m_isGrounded = false;
             m_jumpHeld = true;
@@ -84,9 +81,9 @@ void Player::HandleInput(const bool* keyboardState)
     }
 
     // Variable jump release
-    if (!jump && m_jumpHeld && m_velY < 0.0f)
+    if (!jump && m_jumpHeld && m_vel.y < 0.0f)
     {
-        m_velY *= JUMP_CUT_MULTIPLIER;
+        m_vel.y *= JUMP_CUT_MULTIPLIER;
         m_jumpHeld = false;
     }
 
@@ -112,17 +109,17 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
     // Apply gravity
     if (m_jumpHeld && m_jumpHoldTime < MAX_HOLD_TIME)
     {
-        m_velY += HOLD_GRAVITY * deltaTime;
+        m_vel.y += HOLD_GRAVITY * deltaTime;
         m_jumpHoldTime += deltaTime;
     }
     else
     {
-        m_velY += GRAVITY * deltaTime;
+        m_vel.y += GRAVITY * deltaTime;
     }
 
     // Move
-    m_rect.x += m_velX * deltaTime;
-    m_rect.y += m_velY * deltaTime;
+    m_rect.x += m_vel.x * deltaTime;
+    m_rect.y += m_vel.y * deltaTime;
 
     float floorY   = arenaHeight - wallThickness;
     float ceilingY = wallThickness;
@@ -136,12 +133,12 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
     float currentBottom = m_rect.y + m_rect.h;
 
     // Only land if falling and crossing the floor
-    if (m_velY >= 0.0f &&
+    if (m_vel.y >= 0.0f &&
         previousBottom <= floorY &&
         currentBottom >= floorY)
     {
         m_rect.y = floorY - m_rect.h;
-        m_velY = 0.0f;
+        m_vel.y = 0.0f;
         m_isGrounded = true;
 
         if (!wasGrounded)
@@ -157,8 +154,8 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
     {
         m_rect.y = ceilingY;
 
-        if (m_velY < 0.0f)
-            m_velY = 0.0f;
+        if (m_vel.y < 0.0f)
+            m_vel.y = 0.0f;
     }
 
     // ---------------- LEFT WALL ----------------
@@ -287,8 +284,8 @@ void Player::PerformAttack(Ball& ball)
     dy /= distance;
 
     // Get current speed magnitude
-    float currentVX = ball.GetVelX();
-    float currentVY = ball.GetVelY();
+    float currentVX = ball.getVelocity().x;
+    float currentVY = ball.getVelocity().y;
     float currentSpeed = std::sqrt(currentVX * currentVX +
                                    currentVY * currentVY);
 
@@ -299,8 +296,8 @@ void Player::PerformAttack(Ball& ball)
         newSpeed = MAX_SPEED;
 
     // Redirect velocity to attack direction
-    ball.GetVelX() = dx * newSpeed;
-    ball.GetVelY() = dy * newSpeed;
+    ball.getVelocity().x = dx * newSpeed;
+    ball.getVelocity().y = dy * newSpeed;
 
     m_attackCooldown = 0.3f;
 }
