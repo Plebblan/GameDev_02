@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 
+#include "game.h"
 #include "arena.h"
 #include "ball.h"
 #include "player.h"
@@ -13,23 +14,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    SDL_Window* window = SDL_CreateWindow(
-        "Physics Sandbox",
-        1280,
-        720,
-        0
-    );
-
-    if (!window)
-    {
-        std::cerr << "Window creation failed: " << SDL_GetError() << "\n";
-        return -1;
-    }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
-    if (!renderer)
-    {
-        std::cerr << "Renderer creation failed: " << SDL_GetError() << "\n";
+    GameWindow *window = new GameWindow();
+    if (window->init("Ricochet test") != 0){
+        std::cerr << "Failed to initialize GameWindow: " << SDL_GetError() << std::endl;
+        delete(window);
+        SDL_Quit();
         return -1;
     }
 
@@ -82,18 +71,16 @@ int main(int argc, char* argv[])
         player.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
 
         // ---- Render ----
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 255);
+        SDL_RenderClear(window->renderer);
 
-        arena.Render(renderer);
-        ball.Render(renderer);
-        player.Render(renderer);
+        arena.Render(window->renderer);
+        ball.Render(window->renderer);
+        player.Render(window->renderer);
 
-        SDL_RenderPresent(renderer);
+        SDL_RenderPresent(window->renderer);
     }
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    delete(window);
     SDL_Quit();
 
     return 0;
