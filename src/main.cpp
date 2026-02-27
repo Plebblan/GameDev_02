@@ -3,17 +3,18 @@
 
 #include "arena.h"
 #include "ball.h"
+#include "player.h"
 
 int main(int argc, char* argv[])
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (!SDL_Init(SDL_INIT_VIDEO))
     {
         std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
         return -1;
     }
 
     SDL_Window* window = SDL_CreateWindow(
-        "Ricochet Test",
+        "Physics Sandbox",
         1280,
         720,
         0
@@ -32,34 +33,53 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // Create arena
+    // --- Create Game Objects ---
     Arena arena;
-
-    // Spawn ball in the center
-    Ball ball(640.0f - 10.0f, 360.0f - 10.0f, 20.0f);
+    Ball ball(640.0f - 10.0f, 200.0f, 20.0f);
+    Player player(600.0f, 500.0f);
 
     bool running = true;
-    Uint64 lastTime = SDL_GetTicks();
+
+    Uint64 lastCounter = SDL_GetPerformanceCounter();
+    Uint64 frequency = SDL_GetPerformanceFrequency();
 
     while (running)
     {
+        // ---- Events ----
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
+
+            if (event.type == SDL_EVENT_KEY_DOWN &&
+                event.key.repeat == false)
+            {
+                if (event.key.scancode == SDL_SCANCODE_J)
+                {
+                    player.PerformAttack(ball);
+                }
+            }
         }
 
-        // ---- Delta Time ----
-        Uint64 currentTime = SDL_GetTicks();
-        float deltaTime = (currentTime - lastTime) / 1000.0f;
-        lastTime = currentTime;
+        // ---- Delta Time (High Precision) ----
+        Uint64 currentCounter = SDL_GetPerformanceCounter();
+        float deltaTime = (float)(currentCounter - lastCounter) / frequency;
+        lastCounter = currentCounter;
+
+        // Optional safety clamp (prevents physics explosion if debugging)
+        if (deltaTime > 0.016f)
+            deltaTime = 0.016f;
+
+        // ---- Input ----
+        const bool* keyboardState = SDL_GetKeyboardState(nullptr);
+        player.HandleInput(keyboardState);
 
         // ---- Update ----
         ball.Update(deltaTime);
-
-        // Arena handles ricochet
         arena.CheckCollision(ball.GetRect(), ball.GetVelX(), ball.GetVelY());
+
+        player.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
 
         // ---- Render ----
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -67,6 +87,7 @@ int main(int argc, char* argv[])
 
         arena.Render(renderer);
         ball.Render(renderer);
+        player.Render(renderer);
 
         SDL_RenderPresent(renderer);
     }

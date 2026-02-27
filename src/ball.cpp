@@ -5,7 +5,7 @@ static constexpr float GRAVITY = 10.0f;        // Very weak gravity
 static constexpr float BOUNCE_DAMPING = 0.995f; // Very small energy loss
 
 Ball::Ball(float startX, float startY, float size)
-    : m_velX(250.0f), m_velY(200.0f), m_speed(300.0f)
+    : m_velX(0.0f), m_velY(0.0f), m_speed(0.0f)
 {
     m_rect = {
         startX,

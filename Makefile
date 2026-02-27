@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17
 SDLFLAGS = $(shell pkg-config --cflags --libs sdl3)
 
-SRC = src/main.cpp src/arena.cpp src/ball.cpp
+SRC = src/main.cpp src/arena.cpp src/ball.cpp src/player.cpp
 OBJ = $(SRC:.cpp=.o)
 OUT = game.exe
 
