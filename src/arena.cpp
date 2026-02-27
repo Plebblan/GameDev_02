@@ -1,6 +1,7 @@
 #include "arena.h"
+#include <cmath>
 
-static constexpr float BOUNCE_DAMPING = 0.995f;
+static constexpr float BOUNCE_LOSS = 5.0f;
 
 Arena::Arena(int width, int height, int wallThickness)
     : m_width(width), m_height(height), m_wallThickness(wallThickness)
@@ -55,27 +56,39 @@ void Arena::CheckCollision(SDL_FRect& ballRect, float& velX, float& velY) const
     if (ballRect.x <= m_wallThickness)
     {
         ballRect.x = static_cast<float>(m_wallThickness);
-        velX = -velX * BOUNCE_DAMPING;
+        velX = -velX; // reverse direction
+
+        float sign = (velX >= 0.0f) ? 1.0f : -1.0f;
+        velX = sign * std::max(0.0f, std::abs(velX) - BOUNCE_LOSS);
     }
 
     // Right wall
     if (ballRect.x + ballRect.w >= m_width - m_wallThickness)
     {
         ballRect.x = static_cast<float>(m_width - m_wallThickness - ballRect.w);
-        velX = -velX * BOUNCE_DAMPING;
+        velX = -velX; // reverse direction
+
+        float sign = (velX >= 0.0f) ? 1.0f : -1.0f;
+        velX = sign * std::max(0.0f, std::abs(velX) - BOUNCE_LOSS);
     }
 
     // Top wall
     if (ballRect.y <= m_wallThickness)
     {
         ballRect.y = static_cast<float>(m_wallThickness);
-        velY = -velY * BOUNCE_DAMPING;
+        velY = -velY;
+
+        float sign = (velY >= 0.0f) ? 1.0f : -1.0f;
+        velY = sign * std::max(0.0f, std::abs(velY) - BOUNCE_LOSS);
     }
 
     // Bottom wall
     if (ballRect.y + ballRect.h >= m_height - m_wallThickness)
     {
         ballRect.y = static_cast<float>(m_height - m_wallThickness - ballRect.h);
-        velY = -velY * BOUNCE_DAMPING;
+        velY = -velY;
+
+        float sign = (velY >= 0.0f) ? 1.0f : -1.0f;
+        velY = sign * std::max(0.0f, std::abs(velY) - BOUNCE_LOSS);
     }
 }

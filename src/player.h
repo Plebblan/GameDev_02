@@ -32,6 +32,7 @@ private:
 
     float m_moveSpeed;
     float m_jumpStrength;
+    float m_doubleJumpStrength;
 
     bool m_isGrounded;
 
