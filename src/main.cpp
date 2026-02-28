@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
     Vector2 ballStartPos(640.0f - 10.0f, 200.0f);
     Ball ball(ballStartPos, 20.0f);
     Player player(Vector2(600.0f, 500.0f));
+    Player player2(Vector2(400.0f, 500.0f), 2);
 
     bool running = true;
 
@@ -49,6 +50,11 @@ int main(int argc, char* argv[])
                 {
                     player.PerformAttack(ball);
                 }
+                else if (event.key.scancode == SDL_SCANCODE_RSHIFT)
+                {
+                    player2.PerformAttack(ball);
+                }
+                
             }
         }
 
@@ -63,20 +69,20 @@ int main(int argc, char* argv[])
 
         // ---- Input ----
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
-        bool hurted = player.Check_collision(ball);
+        bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
         if (hurted){
             ball.GetRect().x = ballStartPos.x;
             ball.GetRect().y = ballStartPos.y;
             ball.setVelocity(Vector2(0.0f, 0.0f));
         }
         player.HandleInput(keyboardState);
-
+        player2.HandleInput(keyboardState);
         // ---- Update ----
         ball.Update(deltaTime);
         arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
         player.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
-
+        player2.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
         // ---- Render ----
         SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 255);
         SDL_RenderClear(window->renderer);
@@ -84,7 +90,7 @@ int main(int argc, char* argv[])
         arena.Render(window->renderer);
         ball.Render(window->renderer);
         player.Render(window->renderer);
-
+        player2.Render(window->renderer);
         SDL_RenderPresent(window->renderer);
     }
     delete(window);

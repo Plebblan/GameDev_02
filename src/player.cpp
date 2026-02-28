@@ -6,7 +6,7 @@ static constexpr float MAX_HOLD_TIME = 0.25f;   // Max time jump can be extended
 static constexpr float JUMP_CUT_MULTIPLIER = 0.5f; // Cuts upward velocity if released early
 static constexpr int BASE_HIT_DAMAGE = 50; 
 
-Player::Player(Vector2 pos)
+Player::Player(Vector2 pos, int No)
     : m_vel(Vector2()),
       m_moveSpeed(300.0f),
       m_jumpStrength(500.0f),
@@ -21,21 +21,31 @@ Player::Player(Vector2 pos)
       m_attackDuration(0.15f),
       m_jumpCount(0),
       m_maxJumps(2),
+      m_Noplayer(No),
       m_jumpPressedLastFrame(false)
 {
     m_rect = { pos.x, pos.y, 20.0f, 60.0f };
     m_hp = 200;
-    m_Noplayer = 1;
 }
 
 void Player::HandleInput(const bool* keyboardState)
-{
-    bool left  = keyboardState[SDL_SCANCODE_A];
-    bool right = keyboardState[SDL_SCANCODE_D];
-    bool up    = keyboardState[SDL_SCANCODE_W];
-    bool down  = keyboardState[SDL_SCANCODE_S];
-    bool jump  = keyboardState[SDL_SCANCODE_SPACE];
-
+{   
+    bool left, right, up, down, jump;
+    if (m_Noplayer == 1){
+        left  = keyboardState[SDL_SCANCODE_A];
+        right = keyboardState[SDL_SCANCODE_D];
+        up    = keyboardState[SDL_SCANCODE_W];
+        down  = keyboardState[SDL_SCANCODE_S];
+        jump  = keyboardState[SDL_SCANCODE_SPACE];
+    }
+    else {
+        left  = keyboardState[SDL_SCANCODE_LEFT];   // Phím mũi tên trái
+        right = keyboardState[SDL_SCANCODE_RIGHT];  // Phím mũi tên phải
+        up    = keyboardState[SDL_SCANCODE_UP];     // Phím mũi tên lên
+        down  = keyboardState[SDL_SCANCODE_DOWN];   // Phím mũi tên xuống
+        jump  = keyboardState[SDL_SCANCODE_SLASH];  // Phím gạch chéo (/)
+    }
+     
     m_vel.x = 0.0f;
 
     // Movement + horizontal facing memory

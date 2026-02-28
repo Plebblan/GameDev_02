@@ -19,7 +19,7 @@ enum class AttackDirection
 class Player
 {
 public:
-    Player(Vector2 pos);
+    Player(Vector2 pos, int No = 1);
 
     void HandleInput(const bool* keyboardState);
     void Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness);
