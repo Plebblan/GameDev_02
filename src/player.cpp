@@ -4,6 +4,7 @@ static constexpr float GRAVITY = 900.0f;
 static constexpr float HOLD_GRAVITY = 400.0f;   // Reduced gravity while holding jump
 static constexpr float MAX_HOLD_TIME = 0.25f;   // Max time jump can be extended
 static constexpr float JUMP_CUT_MULTIPLIER = 0.5f; // Cuts upward velocity if released early
+static constexpr int BASE_HIT_DAMAGE = 50; 
 
 Player::Player(Vector2 pos)
     : m_vel(Vector2()),
@@ -23,6 +24,8 @@ Player::Player(Vector2 pos)
       m_jumpPressedLastFrame(false)
 {
     m_rect = { pos.x, pos.y, 20.0f, 60.0f };
+    m_hp = 200;
+    m_Noplayer = 1;
 }
 
 void Player::HandleInput(const bool* keyboardState)
@@ -257,7 +260,7 @@ void Player::PerformAttack(Ball& ball)
 
     const float ATTACK_RADIUS = 100.0f;
     const float IMPULSE_STRENGTH = 300.0f;
-    const float MAX_SPEED = 1200.0f;
+    const float MAX_SPEED = 2000.0f;
 
     // Player center
     float px = m_rect.x + m_rect.w * 0.5f;
@@ -276,8 +279,35 @@ void Player::PerformAttack(Ball& ball)
     if (distance > ATTACK_RADIUS || distance <= 0.01f)
     {
         m_attackCooldown = 0.3f;
-        return;
+                    return;
     }
+    switch (m_facing)
+        {
+            case AttackDirection::Right:
+                if ( float(dx) / distance < float(m_rect.w) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
+                    m_attackCooldown = 0.3f;
+                    return;
+                }
+                break;
+            case AttackDirection::Left:
+                if ( float(dx) / distance > float(m_rect.w) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
+                    m_attackCooldown = 0.3f;
+                    return;
+                }
+                break;
+            case AttackDirection::Up:
+                if ( float(dy) / distance > float(m_rect.h) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
+                    m_attackCooldown = 0.3f;
+                    return;
+                }
+                break;
+            case AttackDirection::Down:
+                if ( float(dy) / distance < float(m_rect.h) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
+                    m_attackCooldown = 0.3f;
+                    return;
+                }
+                break;
+        }
 
     // Normalize direction (THIS enables diagonal)
     dx /= distance;
@@ -300,4 +330,22 @@ void Player::PerformAttack(Ball& ball)
     ball.getVelocity().y = dy * newSpeed;
 
     m_attackCooldown = 0.3f;
+}
+
+bool Player::Check_collision(Ball& ball){
+
+    float upper_px = m_rect.x + m_rect.w;
+    float upper_py = m_rect.y + m_rect.h;
+
+    // Ball center
+    SDL_FRect& ballRect = ball.GetRect();
+    float upper_bx = ballRect.x + ballRect.w;
+    float upper_by = ballRect.y + ballRect.h;
+    if (upper_bx >=  m_rect.x && upper_by >= m_rect.y && upper_px >= ballRect.x && upper_py >= ballRect.y){
+        m_hp -= BASE_HIT_DAMAGE;
+        return true;
+    }
+    return false;
+
+    
 }

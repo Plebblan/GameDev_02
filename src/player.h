@@ -25,12 +25,13 @@ public:
     void Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness);
     void Render(SDL_Renderer* renderer) const;
     void PerformAttack(Ball& ball);
-
+    bool Check_collision(Ball& ball);
 private:
     SDL_FRect m_rect;
 
     Vector2 m_vel;
-
+    int m_Noplayer;
+    int m_hp;
     float m_moveSpeed;
     float m_jumpStrength;
     float m_doubleJumpStrength;

@@ -24,7 +24,8 @@ int main(int argc, char* argv[])
 
     // --- Create Game Objects ---
     Arena arena;
-    Ball ball(Vector2(640.0f - 10.0f, 200.0f), 20.0f);
+    Vector2 ballStartPos(640.0f - 10.0f, 200.0f);
+    Ball ball(ballStartPos, 20.0f);
     Player player(Vector2(600.0f, 500.0f));
 
     bool running = true;
@@ -62,6 +63,12 @@ int main(int argc, char* argv[])
 
         // ---- Input ----
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
+        bool hurted = player.Check_collision(ball);
+        if (hurted){
+            ball.GetRect().x = ballStartPos.x;
+            ball.GetRect().y = ballStartPos.y;
+            ball.setVelocity(Vector2(0.0f, 0.0f));
+        }
         player.HandleInput(keyboardState);
 
         // ---- Update ----
