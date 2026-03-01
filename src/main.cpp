@@ -30,6 +30,12 @@ int main(int argc, char* argv[])
     Ball ball(arena.getBallStart(), 40.0f);
     Player player(Vector2(600.0f, 500.0f));
     Player player2(Vector2(400.0f, 500.0f), 2);
+    Player clone(Vector2(600.0f, 500.0f));
+    Player clone2(Vector2(400.0f, 500.0f), 2);
+    clone.kill();
+    clone2.kill();
+    bool p1_control = true;
+    bool p2_control = true;
     int scoreboard[2] = {0};
     TTF_Font* fontScore = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 300);
     bool running = true;
@@ -51,11 +57,31 @@ int main(int argc, char* argv[])
             {
                 if (event.key.scancode == SDL_SCANCODE_J)
                 {
+                    if (p1_control)
                     player.PerformAttack(ball);
+                    else clone.PerformAttack(ball);
                 }
                 else if (event.key.scancode == SDL_SCANCODE_RSHIFT)
                 {
+                    if (p2_control)
                     player2.PerformAttack(ball);
+                    else clone2.PerformAttack(ball);
+                }
+                else if (event.key.scancode == SDL_SCANCODE_E){
+                    if (!clone.IsDead()) p1_control = !p1_control;
+                }
+                else if (event.key.scancode == SDL_SCANCODE_Q){
+                    if (player.cloneReady()) {
+                        clone.Reset(player.getPos());
+                    }
+                }
+                else if (event.key.scancode == SDL_SCANCODE_COMMA){
+                    if (player2.cloneReady()){
+                        clone2.Reset(player2.getPos());
+                    }
+                }
+                else if (event.key.scancode == SDL_SCANCODE_SEMICOLON){
+                    if (!clone2.IsDead()) p2_control = !p2_control;
                 }
                 else if (event.key.scancode == SDL_SCANCODE_K)
                 {
@@ -96,6 +122,8 @@ int main(int argc, char* argv[])
         // ---- Input ----
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
         bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
+        if (!clone2.IsDead() and ball.GetOwner() != &player2) hurted = hurted or clone2.Check_collision(ball);
+        if (!clone.IsDead() and ball.GetOwner() != &player) hurted = hurted or clone.Check_collision(ball);
         if (hurted){
             ball.GetRect().x = arena.getBallStart().x;
             ball.GetRect().y = arena.getBallStart().y;
@@ -104,21 +132,29 @@ int main(int argc, char* argv[])
             if (player.IsDead()){
                 scoreboard[1] += 1; 
                 player.Reset(Vector2(600.0f, 500.0f));
+                p1_control = true;
+                clone.kill();
             }
             else if (player2.IsDead())
             {
                 scoreboard[0] += 1;
                 player2.Reset(Vector2(400.0f, 500.0f));
+                p2_control = true;
+                clone2.kill();
             }
         }
-        player.HandleInput(keyboardState);
-        player2.HandleInput(keyboardState);
+        if (p1_control) player.HandleInput(keyboardState);
+        else clone.HandleInput(keyboardState);
+        if (p2_control) player2.HandleInput(keyboardState);
+        else clone2.HandleInput(keyboardState);
         // ---- Update ----
         ball.Update(deltaTime, arena);
         arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
         player.Update(deltaTime, arena);
         player2.Update(deltaTime, arena);
+        clone.Update(deltaTime, arena);
+        clone2.Update(deltaTime, arena);
         // ---- Render ----
         SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 255);
         SDL_RenderClear(window->renderer);
@@ -127,6 +163,8 @@ int main(int argc, char* argv[])
         ball.Render(window->renderer);
         player.Render(window->renderer);
         player2.Render(window->renderer);
+        clone.Render(window->renderer);
+        clone2.Render(window->renderer);
         SDL_RenderPresent(window->renderer);
     }
     delete(window);
