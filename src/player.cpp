@@ -202,6 +202,9 @@ void Player::Update(float deltaTime, Arena arena)
 
 void Player::Render(SDL_Renderer* renderer) const
 {
+    if (m_hp <= 0){
+        return;
+    }
     float centerX = m_rect.x + m_rect.w / 2.0f;
     float barW = 40.0f;
     float barH = 6.0f;
@@ -259,13 +262,32 @@ void Player::Render(SDL_Renderer* renderer) const
         centerX, m_rect.y,
         centerX, m_rect.y + m_rect.h * 0.5f);
 
-    SDL_RenderLine(renderer,
-        centerX, m_rect.y + 30.0f,
-        centerX - 20.0f, m_rect.y + m_rect.h * 0.5f);
-
-    SDL_RenderLine(renderer,
-        centerX, m_rect.y + 30.0f,
-        centerX + 20.0f, m_rect.y + m_rect.h * 0.5f);
+    if (m_isAttacking){
+        if (m_facing == AttackDirection::Left){
+            SDL_RenderLine(renderer,
+            centerX, m_rect.y + 30.0f,
+            centerX - 50.0f, m_rect.y + 30.0f);
+            SDL_RenderLine(renderer,
+            centerX, m_rect.y + 30.0f,
+            centerX + 20.0f, m_rect.y + m_rect.h * 0.5f);
+        }
+        else{
+            SDL_RenderLine(renderer,
+            centerX, m_rect.y + 30.0f,
+            centerX + 50.0f, m_rect.y + 30.0f);
+            SDL_RenderLine(renderer,
+            centerX, m_rect.y + 30.0f,
+            centerX - 20.0f, m_rect.y + m_rect.h * 0.5f);
+        }
+    }
+    else {
+        SDL_RenderLine(renderer,
+            centerX, m_rect.y + 30.0f,
+            centerX - 20.0f, m_rect.y + m_rect.h * 0.5f);
+        SDL_RenderLine(renderer,
+            centerX, m_rect.y + 30.0f,
+            centerX + 20.0f, m_rect.y + m_rect.h * 0.5f);
+    }
 
     SDL_RenderLine(renderer,
         centerX, m_rect.y + m_rect.h * 0.5f,
@@ -654,6 +676,7 @@ bool Player::IsDead(){
 void Player::Reset(Vector2 vec){
     m_rect = { vec.x, vec.y, m_rect.w, m_rect.h };
     m_hp = 200;
+    m_cloneUsed = false;
 }
 Player::~Player()
 {
@@ -663,4 +686,18 @@ Player::~Player()
         TTF_CloseFont(font);
         font = nullptr;
     }
+}
+
+void Player::kill(){
+    m_hp = 0;
+}
+
+Vector2 Player::getPos(){
+    return Vector2(m_rect.x, m_rect.y);
+}
+
+bool Player::cloneReady(){
+    if (m_cloneUsed) return false;
+    m_cloneUsed = true;
+    return m_cloneUsed;
 }
