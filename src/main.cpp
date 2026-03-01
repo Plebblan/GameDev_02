@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
         player.HandleInput(keyboardState);
         player2.HandleInput(keyboardState);
         // ---- Update ----
-        ball.Update(deltaTime);
+        ball.Update(deltaTime, arena);
         bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
         if (hurted){
             ball.GetRect().x = arena.getBallStart().x;
@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
         }
         arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
-        player.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
-        player2.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
+        player.Update(deltaTime, arena);
+        player2.Update(deltaTime, arena);
         // ---- Render ----
         SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 255);
         SDL_RenderClear(window->renderer);

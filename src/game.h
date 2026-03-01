@@ -41,12 +41,17 @@ class Vector2 {
 		Vector2(float x, float y);
 		void sub(Vector2 v);
 		void sub(float x, float y);
+		Vector2 sub_N(Vector2 v);
+		Vector2 sub_N(float f);
 		void add(Vector2 v);
 		void add(float x, float y);
+		Vector2 add_N(Vector2 v);
+		Vector2 add_N(float f);
 		void mul(float f);
 		void e_mul(Vector2 v);
 		float dot(Vector2 v);
 		Vector2 mul_N(float f);
+		Vector2 mul_N(Vector2 v);
 		void normalize();
 		float length();
 		double angle(Vector2 v);
