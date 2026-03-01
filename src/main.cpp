@@ -13,6 +13,9 @@ int main(int argc, char* argv[])
         std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
         return -1;
     }
+    if (TTF_Init() < 0) {
+        SDL_Log("TTF could not initialize! SDL_ttf Error: %s", SDL_GetError());
+    }
 
     GameWindow *window = new GameWindow();
     if (window->init("Ricochet test") != 0){
@@ -28,6 +31,7 @@ int main(int argc, char* argv[])
     Ball ball(ballStartPos, 20.0f);
     Player player(Vector2(600.0f, 500.0f));
     Player player2(Vector2(400.0f, 500.0f), 2);
+    int scoreboard[2] = {0};
 
     bool running = true;
 
@@ -74,6 +78,16 @@ int main(int argc, char* argv[])
             ball.GetRect().x = ballStartPos.x;
             ball.GetRect().y = ballStartPos.y;
             ball.setVelocity(Vector2(0.0f, 0.0f));
+            ball.SetOwner(nullptr);
+            if (player.IsDead()){
+                scoreboard[1] += 1; 
+                player.Reset(Vector2(600.0f, 500.0f));
+            }
+            else if (player2.IsDead())
+            {
+                scoreboard[0] += 1;
+                player2.Reset(Vector2(400.0f, 500.0f));
+            }
         }
         player.HandleInput(keyboardState);
         player2.HandleInput(keyboardState);

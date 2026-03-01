@@ -3,8 +3,28 @@
 #include <iostream>
 
 // Font helpers cho vẽ text đơn giản (dùng hình học)
-void DrawChar(SDL_Renderer* renderer, char c, float x, float y, float scale);
-void DrawString(SDL_Renderer* renderer, const std::string& str, float x, float y, float scale);
+// Hiện tại chỉ vẽ mỗi ký tự dưới dạng khung chữ nhật, đủ cho danh sách
+
+void DrawChar(SDL_Renderer* renderer, char c, float x, float y, float scale)
+{
+    // ký tự c hiện chưa dùng, nhưng giữ tham số để dễ mở rộng font
+    (void)c;
+    SDL_FRect rect = { x, y, 8.0f * scale, 20.0f * scale };
+    SDL_RenderRect(renderer, &rect);
+}
+
+void DrawString(SDL_Renderer* renderer, const std::string& str, float x, float y, float scale)
+{
+    float penX = x;
+    for (char c : str) {
+        if (c == ' ') {
+            penX += 10.0f * scale;
+            continue;
+        }
+        DrawChar(renderer, c, penX, y, scale);
+        penX += 10.0f * scale;
+    }
+}
 
 Menu::Menu()
     : m_selectedIndex(0),
@@ -88,7 +108,7 @@ void Menu::HandleInput(const bool* keyboardState) {
         m_selectedIndex--;
         if (m_selectedIndex < 0)
             m_selectedIndex = m_maps.size() - 1;
-        m_selectionTimer = 0.2f; // Delay 200ms
+        m_selectionTimer = 0.3f; // Delay 300ms để không repeat quá nhanh
     }
     
     // Chuyển xuống (S hoặc Down Arrow)
@@ -96,12 +116,13 @@ void Menu::HandleInput(const bool* keyboardState) {
         m_selectedIndex++;
         if (m_selectedIndex >= (int)m_maps.size())
             m_selectedIndex = 0;
-        m_selectionTimer = 0.2f;
+        m_selectionTimer = 0.3f;
     }
     
     // Chọn (SPACE hoặc ENTER)
-    if (keyboardState[SDL_SCANCODE_SPACE] || keyboardState[SDL_SCANCODE_RETURN]) {
+    if ((keyboardState[SDL_SCANCODE_SPACE] || keyboardState[SDL_SCANCODE_RETURN]) && m_selectionTimer <= 0.0f) {
         m_mapSelected = true;
+        m_selectionTimer = 0.3f; // ngăn double-tap nhầm
     }
 }
 
@@ -117,15 +138,13 @@ void Menu::DrawTitle(SDL_Renderer* renderer, int windowWidth, int y) const {
     };
     SDL_RenderRect(renderer, &titleBox);
     
-    // Vẽ text "MAP SELECTION" bằng cách vẽ các hình tròn đơn giản
+    // Vẽ text "MAP SELECTION" bằng cách vẽ các khối chữ đơn giản
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    const char* title = "MAP SELECTION";
-    int titleLen = 13;
+    std::string title = "MAP SELECTION";
+    int titleLen = (int)title.size();
     int startX = windowWidth / 2 - (titleLen * 10) / 2;
     
-    // Vẽ đơn giản bằng console-like style
     for (int i = 0; i < titleLen; ++i) {
-        // Vẽ một hình vuông đơn giản cho mỗi ký tự
         int charX = startX + i * 12;
         SDL_FRect charRect = { static_cast<float>(charX), static_cast<float>(y), 8.0f, 20.0f };
         SDL_RenderRect(renderer, &charRect);
@@ -149,25 +168,18 @@ void Menu::DrawMapList(SDL_Renderer* renderer, int windowWidth, int windowHeight
             // Highlight map được chọn
             SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             SDL_RenderFillRect(renderer, &mapBox);
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         } else {
             SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
             SDL_RenderRect(renderer, &mapBox);
             SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
         }
         
-        // Vẽ text thông tin Map bằng các điểm
+        // Vẽ tên map
         const auto& map = m_maps[i];
-        
-        // Vẽ index
         float text_x = windowWidth / 2 - 180;
         float text_y = y + 20;
-        
-        // Vẽ số thứ tự
-        int num = i + 1;
-        for (int d = 0; d < 1; ++d) {
-            SDL_RenderPoint(renderer, static_cast<int>(text_x) + d * 5, static_cast<int>(text_y));
-        }
+        DrawString(renderer, map.name, text_x, text_y, 1.0f);
     }
     
     // Vẽ text thông tin phía dưới
@@ -182,6 +194,9 @@ void Menu::DrawMapList(SDL_Renderer* renderer, int windowWidth, int windowHeight
         100.0f
     };
     SDL_RenderRect(renderer, &infoBox);
+    
+    // Vẽ mô tả map
+    DrawString(renderer, selectedMap.description, windowWidth / 2 - 280, infoY + 40, 0.8f);
 }
 
 void Menu::DrawInstructions(SDL_Renderer* renderer, int windowWidth, int windowHeight) const {

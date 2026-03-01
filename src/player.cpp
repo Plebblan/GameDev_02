@@ -5,6 +5,7 @@ static constexpr float HOLD_GRAVITY = 400.0f;   // Reduced gravity while holding
 static constexpr float MAX_HOLD_TIME = 0.25f;   // Max time jump can be extended
 static constexpr float JUMP_CUT_MULTIPLIER = 0.5f; // Cuts upward velocity if released early
 static constexpr int BASE_HIT_DAMAGE = 50; 
+static constexpr int BASE_SPEED = 500; 
 
 // Helper function
 static bool RectsIntersect(const SDL_FRect& a, const SDL_FRect& b)
@@ -37,8 +38,19 @@ Player::Player(Vector2 pos, int No)
 {
     m_rect = { pos.x, pos.y, 20.0f, 60.0f };
     m_hp = 200;
+    m_maxHp = 200; 
+    font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 20);
+    
+    if (font) {
+        snprintf(pNum, sizeof(pNum), "P%d", m_Noplayer);
+        SDL_Color textColor = { 255, 255, 255, 255 };
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, pNum, 0, textColor);
+        if (textSurface) {
+            m_nameW = (float)textSurface->w;
+            m_nameH = (float)textSurface->h;
+        }
+    }
 }
-
 void Player::HandleInput(const bool* keyboardState)
 {   
     bool left, right, up, down, jump;
@@ -197,9 +209,44 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
 
 void Player::Render(SDL_Renderer* renderer) const
 {
+    float centerX = m_rect.x + m_rect.w / 2.0f;
+    float barW = 40.0f;
+    float barH = 6.0f;
+    float barX = m_rect.x + (m_rect.w / 2.0f) - (barW / 2.0f);
+    float barY = m_rect.y - 20.0f;
+
+    // Nền thanh máu (Màu đỏ)
+    SDL_FRect healthBg = { barX, barY, barW, barH };
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &healthBg);
+
+    // Lượng máu hiện tại (Màu xanh lá)
+    float healthPercent = (float)m_hp / (float)m_maxHp;
+    if (healthPercent < 0) healthPercent = 0;
+    SDL_FRect healthFill = { barX, barY, barW * healthPercent, barH };
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderFillRect(renderer, &healthFill);
+
+
+    SDL_Color textColor = { 0, 255, 255, 255 };
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, pNum, 0, textColor);
+    if (textSurface) {
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        
+        // Căn giữa chữ dựa trên m_rect
+        float textW = (float)textSurface->w;
+        float textH = (float)textSurface->h;
+        SDL_FRect textRect = { (m_rect.x + m_rect.w/2.0f) - (textW/2.0f), barY - 18.0f, textW, textH };
+        
+        SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
+
+        SDL_DestroySurface(textSurface);
+        SDL_DestroyTexture(textTexture); // QUAN TRỌNG: Phải destroy nếu tạo trong Render
+    }
+
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    float centerX = m_rect.x + m_rect.w / 2.0f;
+    
 
     SDL_FRect head = { centerX - 5.0f, m_rect.y, 10.0f, 10.0f };
     SDL_RenderFillRect(renderer, &head);
@@ -402,14 +449,33 @@ bool Player::Check_collision(Ball& ball)
 
     SDL_FRect& ballRect = ball.GetRect();
 
-    // -------------------------------------------------
-    // 2. AABB collision
-    // -------------------------------------------------
+ 
+    float currentVX = ball.getVelocity().x;
+    float currentVY = ball.getVelocity().y;
+    float currentSpeed = std::sqrt(currentVX * currentVX +
+                                   currentVY * currentVY);
+
     if (RectsIntersect(hurtbox, ballRect))
     {
-        m_hp -= BASE_HIT_DAMAGE;
+        m_hp -= BASE_HIT_DAMAGE * (currentSpeed/BASE_SPEED);
         return true;
     }
 
     return false;
+}
+bool Player::IsDead(){
+    return m_hp <= 0;
+}
+void Player::Reset(Vector2 vec){
+    m_rect = { vec.x, vec.y, 20.0f, 60.0f };
+    m_hp = 200;
+}
+Player::~Player()
+{
+    // Giải phóng Font nếu nó đã được mở
+    if (font != nullptr)
+    {
+        TTF_CloseFont(font);
+        font = nullptr;
+    }
 }
