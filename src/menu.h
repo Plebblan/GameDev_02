@@ -9,6 +9,7 @@
 
 // Cấu hình cho từng Map
 struct MapConfig {
+    int ver;                    // Phiên bản Arena (0 = no platforms, 1 = with platforms)
     std::string name;           // Tên Map
     int width;                  // Chiều rộng
     int height;                 // Chiều cao
@@ -46,7 +47,8 @@ private:
     int m_selectedIndex;        // Index của Map hiện tại đang được highlight
     bool m_mapSelected;         // Có chọn Map hay không
     float m_selectionTimer;     // Timer để tránh input lặp lại quá nhanh
-    
+    TTF_Font * m_font;
+    void DrawString(SDL_Renderer* renderer, std::string text, float x, float y, float scale, SDL_Color color) const;
     // Các hàm hỗ trợ vẽ
     void DrawTitle(SDL_Renderer* renderer, int windowWidth, int y) const;
     void DrawMapList(SDL_Renderer* renderer, int windowWidth, int windowHeight) const;

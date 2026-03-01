@@ -139,6 +139,8 @@ void Vector2::rotate(double angle) { //takes deg argument
 GameWindow::GameWindow(){
     this->window = NULL;
     this->renderer = NULL;
+    this->m_width = 0;
+    this->m_height = 0;
 }
 
 GameWindow::~GameWindow(){
@@ -147,6 +149,8 @@ GameWindow::~GameWindow(){
 }
 
 int GameWindow::init(std::string title, int width, int height){
+    this->m_width = width;
+    this->m_height = height;
     this->window = SDL_CreateWindow(title.c_str(), width, height, 0);
     if (this->window == NULL){
         return -1;

@@ -25,6 +25,8 @@ enum class AttackDirection
 
 class GameWindow{
     private:
+        int m_width;
+        int m_height;
     public:
         SDL_Window *window;
         SDL_Renderer* renderer;
@@ -34,6 +36,8 @@ class GameWindow{
         int init(std::string title, int width = WINDOW_WIDTH, int height = WINDOW_HEIGHT);
         void draw();
         void clear();
+        int getWidth() const { return m_width; }
+        int getHeight() const { return m_height; }
 };
 
 class Vector2 {

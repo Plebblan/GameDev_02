@@ -32,69 +32,36 @@ Menu::Menu()
       m_selectionTimer(0.0f)
 {
     InitializeMaps();
+    m_font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 20);
 }
 
 void Menu::InitializeMaps() {
     m_maps.clear();
     
-    // Map 1: Classic Arena
+    // Map 1: Classic Arena (without platforms)
     m_maps.push_back({
+        0,  // ver
         "Classic Arena",
         1280,
         720,
         10,
-        Vector2(640.0f - 10.0f, 200.0f),
+        Vector2(640.0f - 20.0f, 200.0f),
         Vector2(600.0f, 500.0f),
         Vector2(400.0f, 500.0f),
-        "Standard 1280x720 arena"
+        "Standard arena without platforms"
     });
     
-    // Map 2: Tall Arena
+    // Map 2: Arena with Platforms
     m_maps.push_back({
-        "Tall Arena",
-        800,
-        1000,
+        1,  // ver
+        "Platform Arena",
+        1280,
+        720,
         10,
-        Vector2(400.0f - 10.0f, 300.0f),
-        Vector2(350.0f, 700.0f),
-        Vector2(250.0f, 700.0f),
-        "Tall and narrow 800x1000"
-    });
-    
-    // Map 3: Wide Arena
-    m_maps.push_back({
-        "Wide Arena",
-        1600,
-        600,
-        10,
-        Vector2(800.0f - 10.0f, 150.0f),
-        Vector2(750.0f, 450.0f),
-        Vector2(550.0f, 450.0f),
-        "Wide and short 1600x600"
-    });
-    
-    // Map 4: Small Arena
-    m_maps.push_back({
-        "Small Arena",
-        640,
-        480,
-        8,
-        Vector2(320.0f - 5.0f, 100.0f),
-        Vector2(300.0f, 350.0f),
-        Vector2(200.0f, 350.0f),
-        "Compact 640x480 arena"
-    });
-    
-    // Map 5: Big Arena
-    m_maps.push_back({
-        "Big Arena",
-        1920,
-        1080,
-        12,
-        Vector2(960.0f - 10.0f, 300.0f),
-        Vector2(900.0f, 800.0f),
-        Vector2(700.0f, 800.0f),
-        "Large 1920x1080 arena"
+        Vector2(640.0f - 20.0f, 200.0f),
+        Vector2(600.0f, 500.0f),
+        Vector2(400.0f, 500.0f),
+        "Arena with middle platforms"
     });
 }
 
@@ -108,7 +75,7 @@ void Menu::HandleInput(const bool* keyboardState) {
         m_selectedIndex--;
         if (m_selectedIndex < 0)
             m_selectedIndex = m_maps.size() - 1;
-        m_selectionTimer = 0.3f; // Delay 300ms để không repeat quá nhanh
+        m_selectionTimer = 1.0f; // Delay 300ms để không repeat quá nhanh
     }
     
     // Chuyển xuống (S hoặc Down Arrow)
@@ -116,7 +83,7 @@ void Menu::HandleInput(const bool* keyboardState) {
         m_selectedIndex++;
         if (m_selectedIndex >= (int)m_maps.size())
             m_selectedIndex = 0;
-        m_selectionTimer = 0.3f;
+        m_selectionTimer = 1.0f;
     }
     
     // Chọn (SPACE hoặc ENTER)
@@ -128,8 +95,6 @@ void Menu::HandleInput(const bool* keyboardState) {
 
 void Menu::DrawTitle(SDL_Renderer* renderer, int windowWidth, int y) const {
     SDL_SetRenderDrawColor(renderer, 255, 200, 0, 255);
-    
-    // Vẽ một rectangle highlight cho title
     SDL_FRect titleBox = {
         static_cast<float>(windowWidth / 2 - 150),
         static_cast<float>(y - 20),
@@ -138,65 +103,100 @@ void Menu::DrawTitle(SDL_Renderer* renderer, int windowWidth, int y) const {
     };
     SDL_RenderRect(renderer, &titleBox);
     
-    // Vẽ text "MAP SELECTION" bằng cách vẽ các khối chữ đơn giản
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    std::string title = "MAP SELECTION";
-    int titleLen = (int)title.size();
-    int startX = windowWidth / 2 - (titleLen * 10) / 2;
-    
-    for (int i = 0; i < titleLen; ++i) {
-        int charX = startX + i * 12;
-        SDL_FRect charRect = { static_cast<float>(charX), static_cast<float>(y), 8.0f, 20.0f };
-        SDL_RenderRect(renderer, &charRect);
+    // 2. Vẽ Chữ thật sự bằng SDL_ttf
+    if (m_font) {
+        SDL_Color white = { 255, 255, 255, 255 };
+        std::string titleText = "MAP SELECTION";
+        
+        // Tạo Surface từ chữ
+        SDL_Surface* surface = TTF_RenderText_Blended(m_font, titleText.c_str(), 0, white);
+        if (surface) {
+            SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+            if (texture) {
+                float textW = static_cast<float>(surface->w);
+                float textH = static_cast<float>(surface->h);
+                
+                // Căn giữa chữ vào trong titleBox
+                SDL_FRect destRect = {
+                    static_cast<float>(windowWidth / 2 - textW / 2),
+                    static_cast<float>(y - textH / 2 + 10), // Điều chỉnh y cho khớp box
+                    textW,
+                    textH
+                };
+                
+                SDL_RenderTexture(renderer, texture, NULL, &destRect);
+                
+                // Dọn dẹp
+                SDL_DestroyTexture(texture);
+            }
+            SDL_DestroySurface(surface);
+        }
     }
 }
 
 void Menu::DrawMapList(SDL_Renderer* renderer, int windowWidth, int windowHeight) const {
-    int startY = windowHeight / 2 - (m_maps.size() * 50) / 2;
+    if (m_maps.empty()) return;
+
+    // Tính toán vị trí bắt đầu để căn giữa danh sách theo chiều dọc
+    int itemHeight = 50;
+    int spacing = 10;
+    int totalHeight = m_maps.size() * (itemHeight + spacing);
+    int startY = (windowHeight - totalHeight) / 2;
     
     for (size_t i = 0; i < m_maps.size(); ++i) {
-        int y = startY + i * 60;
+        int y = startY + i * (itemHeight + spacing);
         
         SDL_FRect mapBox = {
             static_cast<float>(windowWidth / 2 - 200),
             static_cast<float>(y),
             400.0f,
-            50.0f
+            static_cast<float>(itemHeight)
         };
         
         if ((int)i == m_selectedIndex) {
-            // Highlight map được chọn
-            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            // Màu xanh cho map đang chọn
+            SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255); 
             SDL_RenderFillRect(renderer, &mapBox);
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            // Màu chữ đen trên nền xanh
+            DrawString(renderer, m_maps[i].name, mapBox.x + 20, mapBox.y + 15, 1.0f, {0, 0, 0, 255});
         } else {
-            SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+            // Viền xám cho các map còn lại
+            SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
             SDL_RenderRect(renderer, &mapBox);
-            SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+            // Màu chữ trắng/xám
+            DrawString(renderer, m_maps[i].name, mapBox.x + 20, mapBox.y + 15, 1.0f, {200, 200, 200, 255});
         }
-        
-        // Vẽ tên map
-        const auto& map = m_maps[i];
-        float text_x = windowWidth / 2 - 180;
-        float text_y = y + 20;
-        DrawString(renderer, map.name, text_x, text_y, 1.0f);
     }
     
-    // Vẽ text thông tin phía dưới
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    const auto& selectedMap = m_maps[m_selectedIndex];
-    
+    // --- Phần hiển thị thông tin chi tiết phía dưới ---
     int infoY = windowHeight - 120;
-    SDL_FRect infoBox = {
-        static_cast<float>(windowWidth / 2 - 300),
-        static_cast<float>(infoY),
-        600.0f,
-        100.0f
-    };
+    SDL_FRect infoBox = { (float)(windowWidth/2 - 300), (float)infoY, 600.0f, 100.0f };
+    
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderRect(renderer, &infoBox);
     
-    // Vẽ mô tả map
-    DrawString(renderer, selectedMap.description, windowWidth / 2 - 280, infoY + 40, 0.8f);
+    // Vẽ mô tả của map đang được chọn
+    const auto& selectedMap = m_maps[m_selectedIndex];
+    DrawString(renderer, "Description: " + selectedMap.description, infoBox.x + 20, infoBox.y + 35, 0.8f, {255, 255, 255, 255});
+}
+
+void Menu::DrawString(SDL_Renderer* renderer, std::string text, float x, float y, float scale, SDL_Color color) const {
+    // 1. Tạo Surface từ font (m_font là TTF_Font*)
+    SDL_Surface* surface = TTF_RenderText_Blended(m_font, text.c_str(), 0, color);
+    if (!surface) return;
+
+    // 2. Chuyển sang Texture
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    
+    // 3. Xác định kích thước chữ
+    SDL_FRect dstRect = { x, y, (float)surface->w * scale, (float)surface->h * scale };
+    
+    // 4. Vẽ
+    SDL_RenderTexture(renderer, texture, nullptr, &dstRect);
+    
+    // 5. Dọn dẹp bộ nhớ (Rất quan trọng để tránh leak RAM)
+    SDL_DestroyTexture(texture);
+    SDL_DestroySurface(surface);
 }
 
 void Menu::DrawInstructions(SDL_Renderer* renderer, int windowWidth, int windowHeight) const {
