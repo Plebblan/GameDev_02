@@ -39,6 +39,15 @@ void Vector2::mul(float f) {
 	this->y *= f;
 }
 
+void Vector2::e_mul(Vector2 v){
+	this->x *= v.x;
+	this->y *= v.y;
+}
+
+float Vector2::dot(Vector2 v){
+	return this->x * v.x + this->y * v.y;
+}
+
 Vector2 Vector2::mul_N(float f) {
 	Vector2 ret;
 	ret.x = this->x*f;
