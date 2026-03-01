@@ -34,11 +34,11 @@ void Ball::Update(float dt)
             m_isBunted = false;
 
             m_owner = m_preBuntOwner;
-
-            float burst = 500.0f;
+            float burst = 400.0f;
+            float finalSpeed = m_preBuntSpeed + burst;
 
             m_vel.x = 0.0f;
-            m_vel.y = burst; // spike down
+            m_vel.y = finalSpeed; // spike down
             m_preBuntOwner = nullptr;
         }
         m_vel.y += 100.0f * dt;
@@ -95,6 +95,7 @@ void Ball::StartBunt(Player* bunter, AttackDirection dir)
     if (!m_isBunted)
     {
         m_preBuntOwner = m_owner;
+        m_preBuntSpeed = m_vel.length();
     }
 
     m_isBunted = true;

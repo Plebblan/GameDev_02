@@ -197,7 +197,10 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
 
 void Player::Render(SDL_Renderer* renderer) const
 {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    if (m_Noplayer == 1)
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    else
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 
     float centerX = m_rect.x + m_rect.w / 2.0f;
 
