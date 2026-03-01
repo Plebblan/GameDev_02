@@ -20,9 +20,9 @@ static bool RectsIntersect(const SDL_FRect& a, const SDL_FRect& b)
 
 Player::Player(Vector2 pos, int No)
     : m_vel(Vector2()),
-      m_moveSpeed(300.0f),
-      m_jumpStrength(500.0f),
-      m_doubleJumpStrength(350.0f),
+      m_moveSpeed(350.0f),
+      m_jumpStrength(600.0f),
+      m_doubleJumpStrength(400.0f),
       m_isGrounded(false),
       m_jumpHeld(false),
       m_jumpHoldTime(0.0f),
@@ -38,7 +38,11 @@ Player::Player(Vector2 pos, int No)
       m_buntCooldown(0.0f),
       m_isBunting(false),
       m_buntTimer(0.0f),
-      m_buntDuration(0.15f)
+      m_buntDuration(0.2f),
+      m_catchCooldown(0.0f),
+      m_isCatching(false),
+      m_catchTimer(0.0f),
+      m_catchDuration(0.15f)
 {
     m_rect = { pos.x, pos.y, 40.0f, 150.0f };
     m_hp = 200;
@@ -55,6 +59,7 @@ Player::Player(Vector2 pos, int No)
         }
     }
 }
+
 void Player::HandleInput(const bool* keyboardState)
 {   
     bool left, right, up, down, jump;
@@ -156,6 +161,18 @@ void Player::Update(float deltaTime, Arena arena)
         m_buntTimer -= deltaTime;
         if (m_buntTimer <= 0.0f)
             m_isBunting = false;
+    }
+
+    // Cooldown timer
+    if (m_catchCooldown > 0.0f)
+        m_catchCooldown -= deltaTime;
+
+    // Bunt active window
+    if (m_isCatching)
+    {
+        m_catchTimer -= deltaTime;
+        if (m_buntTimer <= 0.0f)
+            m_isCatching = false;
     }
 
     // Apply gravity
@@ -381,7 +398,9 @@ void Player::Render(SDL_Renderer* renderer) const
 
 void Player::PerformAttack(Ball& ball)
 {
-    if (m_attackCooldown > 0.0f)
+    if (ball.IsCaught())
+        return;
+    if (m_attackCooldown > 0.0f )
         return;
 
     m_isAttacking = true;
@@ -478,6 +497,8 @@ void Player::PerformAttack(Ball& ball)
 
 void Player::Bunt(Ball& ball)
 {
+    if (ball.IsCaught())
+        return;
     if (m_buntCooldown > 0.0f)
         return;
     
@@ -537,6 +558,58 @@ void Player::Bunt(Ball& ball)
     m_buntCooldown = 0.2f;
 }
 
+void Player::CatchThrow(Ball& ball)
+{
+    // ------------------------------------
+    // CASE 1: Ball is already caught
+    // ------------------------------------
+    if (ball.IsCaught())
+    {
+        // Only holder can throw
+        if (ball.GetHolder() == this)
+        {
+            ball.Throw(m_facing);
+        }
+        return;
+    }
+
+    // ------------------------------------
+    // CASE 2: Ball is free → attempt catch
+    // ------------------------------------
+
+    if (m_catchCooldown > 0.0f)
+        return;
+    
+    m_isCatching = true;
+    m_catchTimer = m_catchDuration;
+
+    SDL_FRect& ballRect = ball.GetRect();
+
+    const float CATCH_WIDTH  = 100.0f;
+    const float CATCH_HEIGHT = 110.0f;
+
+    float centerX = m_rect.x + m_rect.w * 0.5f;
+    float centerY = m_rect.y + m_rect.h * 0.5f;
+
+    SDL_FRect catchBox = {
+        centerX - CATCH_WIDTH * 0.5f,
+        centerY - CATCH_HEIGHT * 0.5f,
+        CATCH_WIDTH,
+        CATCH_HEIGHT
+    };
+
+    if (SDL_HasRectIntersectionFloat(&catchBox, &ballRect))
+    {
+        ball.Catch(this);
+    }
+
+    m_catchCooldown = 0.9f;
+}
+
+SDL_FRect& Player::GetRect()
+{
+    return m_rect;
+}
 bool Player::Check_collision(Ball& ball)
 {
     // -------------------------------------------------

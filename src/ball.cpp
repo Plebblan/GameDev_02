@@ -11,7 +11,8 @@ Ball::Ball(Vector2 pos, float size)
       m_owner(nullptr),
       m_preBuntOwner(nullptr),
       m_neutralTimer(9999.0f),
-      m_isBunted(false),
+      m_state(BallState::Normal),
+      m_holder(nullptr),
       m_buntTimer(0.0f),
       m_buntDuration(0.0f)
 {
@@ -25,13 +26,25 @@ Ball::Ball(Vector2 pos, float size)
 
 void Ball::Update(float dt, Arena arena)
 {
-    if (m_isBunted)
+    if (m_state == BallState::Caught)
+    {
+        // Stick to holder
+        float px = m_holder->GetRect().x + m_holder->GetRect().w * 0.5f;
+        float py = m_holder->GetRect().y - m_rect.h - 5.0f;
+
+        m_rect.x = px - m_rect.w * 0.5f;
+        m_rect.y = py;
+
+        return; // No gravity, no collision
+    }
+
+    if (m_state == BallState::Bunted)
     {
         m_buntTimer += dt;
 
         if (m_buntTimer >= m_buntDuration)
         {
-            m_isBunted = false;
+            m_state = BallState::Normal;
 
             m_owner = m_preBuntOwner;
             float burst = 400.0f;
@@ -93,13 +106,13 @@ void Ball::Render(SDL_Renderer* renderer) const
 
 void Ball::StartBunt(Player* bunter, AttackDirection dir)
 {
-    if (!m_isBunted)
+    if (m_state != BallState::Bunted)
     {
         m_preBuntOwner = m_owner;
         m_preBuntSpeed = m_vel.length();
     }
 
-    m_isBunted = true;
+    m_state = BallState::Bunted;
     m_owner = nullptr; // neutral (purple)
 
     m_buntTimer = 0.0f;
@@ -134,7 +147,7 @@ void Ball::StartBunt(Player* bunter, AttackDirection dir)
 
 void Ball::UnBunt()
 {
-    m_isBunted = false;
+    m_state = BallState::Normal;
     m_preBuntOwner = nullptr;
     m_buntTimer = 0.0f;
     if (m_preBuntSpeed != 0)
@@ -143,6 +156,54 @@ void Ball::UnBunt()
         m_vel.y = 0;
         m_preBuntSpeed = 0;
     }
+}
+
+void Ball::Catch(Player* player)
+{
+    m_state = BallState::Caught;
+    m_holder = player;
+    m_owner = player;
+
+    m_vel.set(0.0f, 0.0f);
+}
+
+void Ball::Throw(AttackDirection dir)
+{
+    if (m_state != BallState::Caught)
+        return;
+
+    const float THROW_SPEED = 600.0f;
+
+    switch (dir)
+    {
+        case AttackDirection::Right:
+            m_vel.set(THROW_SPEED, 0.0f);
+            break;
+        case AttackDirection::Left:
+            m_vel.set(-THROW_SPEED, 0.0f);
+            break;
+        case AttackDirection::Up:
+            m_vel.set(0.0f, -THROW_SPEED);
+            break;
+        case AttackDirection::Down:
+            m_vel.set(0.0f, THROW_SPEED);
+            break;
+        default:
+            break;
+    }
+
+    m_state = BallState::Normal;
+    m_holder = nullptr;
+}
+
+bool Ball::IsCaught() const
+{
+    return m_state == BallState::Caught;
+}
+
+Player* Ball::GetHolder() 
+{
+    return m_holder;
 }
 
 SDL_FRect& Ball::GetRect()

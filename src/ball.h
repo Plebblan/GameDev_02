@@ -6,6 +6,13 @@
 
 class Player;
 
+enum class BallState
+{
+    Normal,
+    Bunted,
+    Caught
+};
+
 class Ball
 {
 public:
@@ -27,6 +34,11 @@ public:
     void StartBunt(Player* bunter, AttackDirection dir);
     void UnBunt();
 
+    void Catch(Player* player);
+    void Throw(AttackDirection dir);
+    bool IsCaught() const;
+    Player* GetHolder();
+
 private:
     SDL_FRect m_rect;
     Vector2 m_vel;
@@ -35,13 +47,11 @@ private:
     float   m_neutralTimer;
     float   m_neutralDuration;
 
-    bool  m_isBunted;
+    BallState m_state;
+    Player* m_holder;
 
     float m_buntTimer;
     float m_buntDuration;
-
-    float m_buntStartX;
-    float m_buntStartY;
 
     float m_buntHeight;     
     float m_buntDistance;   

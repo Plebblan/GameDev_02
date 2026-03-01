@@ -13,11 +13,13 @@ class Player
 public:
     Player(Vector2 pos, int No = 1);
     ~Player();
+    SDL_FRect& GetRect();
     void HandleInput(const bool* keyboardState);
     void Update(float deltaTime, Arena arena);
     void Render(SDL_Renderer* renderer) const;
     void PerformAttack(Ball& ball);
     void Bunt(Ball& ball);
+    void CatchThrow(Ball& ball);
     bool Check_collision(Ball& ball);
     int GetPlayerNumber() const { return m_Noplayer; }
     bool IsDead();
@@ -52,6 +54,11 @@ private:
     bool m_isBunting;
     float m_buntTimer;
     float m_buntDuration;
+
+    float m_catchCooldown;
+    bool m_isCatching;
+    float m_catchTimer;
+    float m_catchDuration;
     
     float m_nameW = 0, m_nameH = 0;
     int m_maxHp = 200; // Để tính tỷ lệ % thanh máu

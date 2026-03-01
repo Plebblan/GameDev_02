@@ -57,13 +57,21 @@ int main(int argc, char* argv[])
                 {
                     player2.PerformAttack(ball);
                 }
-                    if (event.key.scancode == SDL_SCANCODE_K)
+                else if (event.key.scancode == SDL_SCANCODE_K)
                 {
                     player.Bunt(ball);
                 }
                 else if (event.key.scancode == SDL_SCANCODE_PERIOD)
                 {
                     player2.Bunt(ball);
+                }
+                else if (event.key.scancode == SDL_SCANCODE_L)
+                {
+                    player.CatchThrow(ball);
+                }
+                else if (event.key.scancode == SDL_SCANCODE_COMMA)
+                {
+                    player2.CatchThrow(ball);
                 }
             }
         }
