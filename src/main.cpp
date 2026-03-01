@@ -95,8 +95,8 @@ int main(int argc, char* argv[])
         ball.Update(deltaTime);
         arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
-        player.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
-        player2.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
+        player.Update(deltaTime, arena);
+        player2.Update(deltaTime, arena);
         // ---- Render ----
         SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 255);
         SDL_RenderClear(window->renderer);

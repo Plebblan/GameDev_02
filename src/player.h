@@ -3,6 +3,7 @@
 
 #include "game.h"
 #include "ball.h"
+#include "arena.h"
 #include <cmath>
 
 class Ball;
@@ -13,7 +14,7 @@ public:
     Player(Vector2 pos, int No = 1);
     ~Player();
     void HandleInput(const bool* keyboardState);
-    void Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness);
+    void Update(float deltaTime, Arena arena);
     void Render(SDL_Renderer* renderer) const;
     void PerformAttack(Ball& ball);
     void Bunt(Ball& ball);

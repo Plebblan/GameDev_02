@@ -23,7 +23,7 @@ Ball::Ball(Vector2 pos, float size)
     };
 }
 
-void Ball::Update(float dt)
+void Ball::Update(float dt, Arena arena)
 {
     if (m_isBunted)
     {
@@ -46,8 +46,9 @@ void Ball::Update(float dt)
     else
         m_vel.y += GRAVITY * dt;
 
-    m_rect.x += m_vel.x * dt;
-    m_rect.y += m_vel.y * dt;
+    // m_rect.x += m_vel.x * dt;
+    // m_rect.y += m_vel.y * dt;
+    arena.CheckCollisionCCD(m_rect, m_vel, dt);
 }
 
 void Ball::Render(SDL_Renderer* renderer) const

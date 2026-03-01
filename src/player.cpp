@@ -36,7 +36,7 @@ Player::Player(Vector2 pos, int No)
       m_Noplayer(No),
       m_jumpPressedLastFrame(false)
 {
-    m_rect = { pos.x, pos.y, 20.0f, 60.0f };
+    m_rect = { pos.x, pos.y, 40.0f, 100.0f };
     m_hp = 200;
     m_maxHp = 200; 
     font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 20);
@@ -126,7 +126,7 @@ void Player::HandleInput(const bool* keyboardState)
     m_jumpPressedLastFrame = jump;
 }
 
-void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness)
+void Player::Update(float deltaTime, Arena arena)
 {
     float previousBottom = m_rect.y + m_rect.h;
     
@@ -157,54 +157,14 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
     m_rect.x += m_vel.x * deltaTime;
     m_rect.y += m_vel.y * deltaTime;
 
-    float floorY   = arenaHeight - wallThickness;
-    float ceilingY = wallThickness;
-    float leftWall = wallThickness;
-    float rightWall = arenaWidth - wallThickness;
-
     bool wasGrounded = m_isGrounded;
-    m_isGrounded = false;
-
-    // ---------------- FLOOR ----------------
-    float currentBottom = m_rect.y + m_rect.h;
-
-    // Only land if falling and crossing the floor
-    if (m_vel.y >= 0.0f &&
-        previousBottom <= floorY &&
-        currentBottom >= floorY)
-    {
-        m_rect.y = floorY - m_rect.h;
-        m_vel.y = 0.0f;
-        m_isGrounded = true;
-
-        if (!wasGrounded)
+    m_isGrounded = arena.collidePlayer(m_rect, m_vel);
+    if (m_isGrounded && !wasGrounded)
         {
             m_jumpCount = 0;
             m_jumpHeld = false;
             m_jumpPressedLastFrame = false;
         }
-    }
-
-    // ---------------- CEILING ----------------
-    if (m_rect.y <= ceilingY)
-    {
-        m_rect.y = ceilingY;
-
-        if (m_vel.y < 0.0f)
-            m_vel.y = 0.0f;
-    }
-
-    // ---------------- LEFT WALL ----------------
-    if (m_rect.x <= leftWall)
-    {
-        m_rect.x = leftWall;
-    }
-
-    // ---------------- RIGHT WALL ----------------
-    if (m_rect.x + m_rect.w >= rightWall)
-    {
-        m_rect.x = rightWall - m_rect.w;
-    }
 }
 
 void Player::Render(SDL_Renderer* renderer) const
