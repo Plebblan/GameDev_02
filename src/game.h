@@ -6,18 +6,20 @@
 #define PI 3.14
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 #include <string>
 #include <cmath>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
 
-// Game States
-enum class GameState {
-    MENU,           // Ở menu chọn map
-    GAMEPLAY,       // Đang chơi game
-    PAUSED,         // Tạm dừng (optional)
-    GAME_OVER       // Kết thúc game (optional)
+enum class AttackDirection
+{
+    None,
+    Left,
+    Right,
+    Up,
+    Down
 };
 
 class GameWindow{
@@ -43,6 +45,8 @@ class Vector2 {
 		void add(Vector2 v);
 		void add(float x, float y);
 		void mul(float f);
+		void e_mul(Vector2 v);
+		float dot(Vector2 v);
 		Vector2 mul_N(float f);
 		void normalize();
 		float length();

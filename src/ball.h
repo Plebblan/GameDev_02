@@ -3,6 +3,8 @@
 
 #include "game.h"
 
+class Player;
+
 class Ball
 {
 public:
@@ -12,14 +14,39 @@ public:
     void Render(SDL_Renderer* renderer) const;
 
     SDL_FRect& GetRect();
-    Vector2& getVelocity();
 
+    Vector2& getVelocity();
     void setVelocity(Vector2 vel);
+
+    void SetOwner(Player* player);
+    Player* GetOwner() const;
+
+    void EnterNeutral(float duration);
+    bool IsNeutral() const;
+
+    void StartBunt(Player* bunter, AttackDirection dir);
 
 private:
     SDL_FRect m_rect;
     Vector2 m_vel;
     float m_speed;
-};
+    Player* m_owner;
+    Player* m_previousOwner;
+    float   m_neutralTimer;
+    float   m_neutralDuration;
+
+    bool  m_isBunted;
+
+    float m_buntTimer;
+    float m_buntDuration;
+
+    float m_buntStartX;
+    float m_buntStartY;
+
+    float m_buntHeight;     
+    float m_buntDistance;   
+    float m_preBuntSpeed;
+    Player* m_preBuntOwner;
+    };
 
 #endif

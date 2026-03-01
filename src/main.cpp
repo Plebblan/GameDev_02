@@ -5,7 +5,6 @@
 #include "arena.h"
 #include "ball.h"
 #include "player.h"
-#include "menu.h"
 
 int main(int argc, char* argv[])
 {
@@ -23,16 +22,12 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // --- Initialize Menu ---
-    Menu menu;
-    GameState gameState = GameState::MENU;
-    
-    // Game objects (sẽ được khởi tạo khi chọn map)
-    Arena* arena = nullptr;
-    Ball* ball = nullptr;
-    Player* player = nullptr;
-    Player* player2 = nullptr;
-    Vector2 ballStartPos;
+    // --- Create Game Objects ---
+    Arena arena;
+    Vector2 ballStartPos(640.0f - 10.0f, 200.0f);
+    Ball ball(ballStartPos, 20.0f);
+    Player player(Vector2(600.0f, 500.0f));
+    Player player2(Vector2(400.0f, 500.0f), 2);
 
     bool running = true;
 
@@ -51,31 +46,15 @@ int main(int argc, char* argv[])
             if (event.type == SDL_EVENT_KEY_DOWN &&
                 event.key.repeat == false)
             {
-                if (gameState == GameState::GAMEPLAY)
+                if (event.key.scancode == SDL_SCANCODE_J)
                 {
-                    if (event.key.scancode == SDL_SCANCODE_J)
-                    {
-                        player->PerformAttack(*ball);
-                    }
-                    else if (event.key.scancode == SDL_SCANCODE_RSHIFT)
-                    {
-                        player2->PerformAttack(*ball);
-                    }
-                    // ESC để quay lại menu
-                    else if (event.key.scancode == SDL_SCANCODE_ESCAPE)
-                    {
-                        gameState = GameState::MENU;
-                        menu.Reset();
-                        delete arena;
-                        delete ball;
-                        delete player;
-                        delete player2;
-                        arena = nullptr;
-                        ball = nullptr;
-                        player = nullptr;
-                        player2 = nullptr;
-                    }
+                    player.PerformAttack(ball);
                 }
+                else if (event.key.scancode == SDL_SCANCODE_RSHIFT)
+                {
+                    player2.PerformAttack(ball);
+                }
+                
             }
         }
 
@@ -88,71 +67,32 @@ int main(int argc, char* argv[])
         if (deltaTime > 0.016f)
             deltaTime = 0.016f;
 
-        // ---- Input & Update ----
+        // ---- Input ----
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
-        
-        if (gameState == GameState::MENU)
-        {
-            menu.HandleInput(keyboardState);
-            
-            if (menu.IsMapSelected())
-            {
-                // Khởi tạo game với map được chọn
-                const MapConfig& selectedMap = menu.GetSelectedMap();
-                
-                ballStartPos = selectedMap.ballSpawnPos;
-                arena = new Arena(selectedMap.width, selectedMap.height, selectedMap.wallThickness);
-                ball = new Ball(ballStartPos, 20.0f);
-                player = new Player(selectedMap.player1SpawnPos);
-                player2 = new Player(selectedMap.player2SpawnPos, 2);
-                
-                gameState = GameState::GAMEPLAY;
-            }
+        bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
+        if (hurted){
+            ball.GetRect().x = ballStartPos.x;
+            ball.GetRect().y = ballStartPos.y;
+            ball.setVelocity(Vector2(0.0f, 0.0f));
         }
-        else if (gameState == GameState::GAMEPLAY)
-        {
-            bool hurted = player->Check_collision(*ball) || player2->Check_collision(*ball);
-            if (hurted){
-                ball->GetRect().x = ballStartPos.x;
-                ball->GetRect().y = ballStartPos.y;
-                ball->setVelocity(Vector2(0.0f, 0.0f));
-            }
-            
-            player->HandleInput(keyboardState);
-            player2->HandleInput(keyboardState);
-            
-            // ---- Update ----
-            ball->Update(deltaTime);
-            arena->CheckCollision(ball->GetRect(), ball->getVelocity());
+        player.HandleInput(keyboardState);
+        player2.HandleInput(keyboardState);
+        // ---- Update ----
+        ball.Update(deltaTime);
+        arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
-            player->Update(deltaTime, arena->GetWidth(), arena->GetHeight(), 10);
-            player2->Update(deltaTime, arena->GetWidth(), arena->GetHeight(), 10);
-        }
-        
+        player.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
+        player2.Update(deltaTime, arena.GetWidth(), arena.GetHeight(), 10);
         // ---- Render ----
         SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 255);
         SDL_RenderClear(window->renderer);
 
-        if (gameState == GameState::MENU)
-        {
-            menu.Render(window->renderer, WINDOW_WIDTH, WINDOW_HEIGHT);
-        }
-        else if (gameState == GameState::GAMEPLAY)
-        {
-            arena->Render(window->renderer);
-            ball->Render(window->renderer);
-            player->Render(window->renderer);
-            player2->Render(window->renderer);
-        }
-        
+        arena.Render(window->renderer);
+        ball.Render(window->renderer);
+        player.Render(window->renderer);
+        player2.Render(window->renderer);
         SDL_RenderPresent(window->renderer);
     }
-    
-    // Cleanup
-    if (arena) delete arena;
-    if (ball) delete ball;
-    if (player) delete player;
-    if (player2) delete player2;
     delete(window);
     SDL_Quit();
 

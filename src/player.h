@@ -7,15 +7,6 @@
 
 class Ball;
 
-enum class AttackDirection
-{
-    None,
-    Left,
-    Right,
-    Up,
-    Down
-};
-
 class Player
 {
 public:
@@ -25,7 +16,9 @@ public:
     void Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness);
     void Render(SDL_Renderer* renderer) const;
     void PerformAttack(Ball& ball);
+    void Bunt(Ball& ball);
     bool Check_collision(Ball& ball);
+    int GetPlayerNumber() const { return m_Noplayer; }
 private:
     SDL_FRect m_rect;
 

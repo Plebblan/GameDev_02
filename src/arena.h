@@ -2,12 +2,13 @@
 #define ARENA_H
 
 #include "game.h"
+#include <vector>
 #include <cmath>
 
 class Arena
 {
 public:
-    Arena(int width = 1280, int height = 720, int wallThickness = 10);
+    Arena(int ver = 0, int width = 1280, int height = 720, int wallThickness = 30);
 
     void Render(SDL_Renderer* renderer) const;
 
@@ -16,15 +17,17 @@ public:
 
     int GetWidth() const { return m_width; }
     int GetHeight() const { return m_height; }
+    Vector2 getBallStart();
 
 private:
     int m_width;
     int m_height;
     int m_wallThickness;
-    SDL_FRect m_topWall;
-    SDL_FRect m_bottomWall;
-    SDL_FRect m_leftWall;
-    SDL_FRect m_rightWall;
+    Vector2 m_ballStartPos = Vector2(640.0f - 10.0f, 200.0f);
+
+    std::vector<SDL_FRect> m_walls;
 };
+
+
 
 #endif

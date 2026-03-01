@@ -6,6 +6,17 @@ static constexpr float MAX_HOLD_TIME = 0.25f;   // Max time jump can be extended
 static constexpr float JUMP_CUT_MULTIPLIER = 0.5f; // Cuts upward velocity if released early
 static constexpr int BASE_HIT_DAMAGE = 50; 
 
+// Helper function
+static bool RectsIntersect(const SDL_FRect& a, const SDL_FRect& b)
+{
+    return (
+        a.x < b.x + b.w &&
+        a.x + a.w > b.x &&
+        a.y < b.y + b.h &&
+        a.y + a.h > b.y
+    );
+}
+
 Player::Player(Vector2 pos, int No)
     : m_vel(Vector2()),
       m_moveSpeed(300.0f),
@@ -269,7 +280,7 @@ void Player::PerformAttack(Ball& ball)
     m_attackTimer = m_attackDuration;
 
     const float ATTACK_RADIUS = 100.0f;
-    const float IMPULSE_STRENGTH = 300.0f;
+    const float IMPULSE_STRENGTH = 400.0f;
     const float MAX_SPEED = 2000.0f;
 
     // Player center
@@ -340,22 +351,65 @@ void Player::PerformAttack(Ball& ball)
     ball.getVelocity().y = dy * newSpeed;
 
     m_attackCooldown = 0.3f;
+
+    // Set new owner
+    ball.SetOwner(this);
 }
 
-bool Player::Check_collision(Ball& ball){
+void Player::Bunt(Ball& ball)
+{
+    const float BUNT_RADIUS = 80.0f;
 
-    float upper_px = m_rect.x + m_rect.w;
-    float upper_py = m_rect.y + m_rect.h;
+    float px = m_rect.x + m_rect.w * 0.5f;
+    float py = m_rect.y + m_rect.h * 0.5f;
 
-    // Ball center
     SDL_FRect& ballRect = ball.GetRect();
-    float upper_bx = ballRect.x + ballRect.w;
-    float upper_by = ballRect.y + ballRect.h;
-    if (upper_bx >=  m_rect.x && upper_by >= m_rect.y && upper_px >= ballRect.x && upper_py >= ballRect.y){
+    float bx = ballRect.x + ballRect.w * 0.5f;
+    float by = ballRect.y + ballRect.h * 0.5f;
+
+    float dx = bx - px;
+    float dy = by - py;
+
+    float distSq = dx * dx + dy * dy;
+
+    if (distSq <= BUNT_RADIUS * BUNT_RADIUS)
+    {
+        ball.StartBunt(this, m_facing);
+    }
+}
+
+bool Player::Check_collision(Ball& ball)
+{
+    // -------------------------------------------------
+    // 1. Ownership rules (BALL hitting PLAYER only)
+    // -------------------------------------------------
+    if (ball.IsNeutral())
+        return false;
+
+    if (ball.GetOwner() == this)
+        return false;
+
+    const float HURTBOX_WIDTH_RATIO  = 0.6f;
+    const float HURTBOX_HEIGHT_RATIO = 0.75f;
+
+    float hurtWidth  = m_rect.w * HURTBOX_WIDTH_RATIO;
+    float hurtHeight = m_rect.h * HURTBOX_HEIGHT_RATIO;
+
+    float hurtX = m_rect.x + (m_rect.w - hurtWidth) * 0.5f;
+    float hurtY = m_rect.y + (m_rect.h - hurtHeight);
+
+    SDL_FRect hurtbox = { hurtX, hurtY, hurtWidth, hurtHeight };
+
+    SDL_FRect& ballRect = ball.GetRect();
+
+    // -------------------------------------------------
+    // 2. AABB collision
+    // -------------------------------------------------
+    if (RectsIntersect(hurtbox, ballRect))
+    {
         m_hp -= BASE_HIT_DAMAGE;
         return true;
     }
-    return false;
 
-    
+    return false;
 }
