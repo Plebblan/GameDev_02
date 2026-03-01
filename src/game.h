@@ -6,6 +6,7 @@
 #define PI 3.14
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 #include <string>
 #include <cmath>
 
@@ -44,6 +45,8 @@ class Vector2 {
 		void add(Vector2 v);
 		void add(float x, float y);
 		void mul(float f);
+		void e_mul(Vector2 v);
+		float dot(Vector2 v);
 		Vector2 mul_N(float f);
 		void normalize();
 		float length();
