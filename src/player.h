@@ -27,6 +27,7 @@ public:
     void kill();
     Vector2 getPos();
     bool cloneReady();
+    void setAlly(Player* p);
 private:
     SDL_FRect m_rect;
 
@@ -68,6 +69,7 @@ private:
     char pNum[3];
     TTF_Font* font;
     bool m_cloneUsed = false;
+    Player *ally;
 };
 
 #endif

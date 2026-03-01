@@ -640,7 +640,7 @@ bool Player::Check_collision(Ball& ball)
     if (ball.IsNeutral())
         return false;
 
-    if (ball.GetOwner() == this)
+    if (ball.GetOwner() == this || ball.GetOwner() == this->ally)
         return false;
 
     const float HURTBOX_WIDTH_RATIO  = 0.6f;
@@ -700,4 +700,8 @@ bool Player::cloneReady(){
     if (m_cloneUsed) return false;
     m_cloneUsed = true;
     return m_cloneUsed;
+}
+
+void Player::setAlly(Player *p){
+    this->ally = p;
 }

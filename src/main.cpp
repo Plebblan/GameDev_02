@@ -32,6 +32,10 @@ int main(int argc, char* argv[])
     Player player2(Vector2(400.0f, 500.0f), 2);
     Player clone(Vector2(600.0f, 500.0f));
     Player clone2(Vector2(400.0f, 500.0f), 2);
+    player.setAlly(&clone);
+    clone.setAlly(&player);
+    player2.setAlly(&clone2);
+    clone2.setAlly(&player2);
     clone.kill();
     clone2.kill();
     bool p1_control = true;
@@ -85,19 +89,23 @@ int main(int argc, char* argv[])
                 }
                 else if (event.key.scancode == SDL_SCANCODE_K)
                 {
-                    player.Bunt(ball);
+                    if (p1_control) player.Bunt(ball);
+                    else clone.Bunt(ball);
                 }
                 else if (event.key.scancode == SDL_SCANCODE_PERIOD)
                 {
-                    player2.Bunt(ball);
+                    if (p2_control) player2.Bunt(ball);
+                    else clone2.Bunt(ball);
                 }
                 else if (event.key.scancode == SDL_SCANCODE_L)
                 {
-                    player.CatchThrow(ball);
+                    if (p1_control) player.CatchThrow(ball);
+                    else clone.CatchThrow(ball);
                 }
                 else if (event.key.scancode == SDL_SCANCODE_COMMA)
                 {
-                    player2.CatchThrow(ball);
+                    if (p2_control) player2.CatchThrow(ball);
+                    else clone2.CatchThrow(ball);
                 }
             }
 
@@ -122,8 +130,8 @@ int main(int argc, char* argv[])
         // ---- Input ----
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
         bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
-        if (!clone2.IsDead() and ball.GetOwner() != &player2) hurted = hurted or clone2.Check_collision(ball);
-        if (!clone.IsDead() and ball.GetOwner() != &player) hurted = hurted or clone.Check_collision(ball);
+        if (!clone2.IsDead()) hurted = hurted or clone2.Check_collision(ball);
+        if (!clone.IsDead()) hurted = hurted or clone.Check_collision(ball);
         if (hurted){
             ball.GetRect().x = arena.getBallStart().x;
             ball.GetRect().y = arena.getBallStart().y;
