@@ -47,18 +47,16 @@ private:
     int  m_jumpCount;
     int  m_maxJumps;
     bool m_jumpPressedLastFrame;
-<<<<<<< HEAD
 
     float m_buntCooldown;
     bool m_isBunting;
     float m_buntTimer;
     float m_buntDuration;
-=======
+    
     float m_nameW = 0, m_nameH = 0;
     int m_maxHp = 200; // Để tính tỷ lệ % thanh máu
     char pNum[3];
     TTF_Font* font;
->>>>>>> f41d74a2d5d6fe450a7348854cd72a0a6ab69100
 };
 
 #endif

@@ -223,7 +223,7 @@ void Player::Render(SDL_Renderer* renderer) const
     if (m_Noplayer == 1)
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     else
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 120, 255, 255);
 
     
 
@@ -250,7 +250,7 @@ void Player::Render(SDL_Renderer* renderer) const
     {
         const int LAYERS = 6;              // how many arcs
         const int SEGMENTS = 28;           // smoothness
-        const float BASE_RADIUS = 20.0f;   // inner arc
+        const float BASE_RADIUS = 50.0f;   // inner arc
         float MAX_RADIUS  = 120.0f;  // OUTER ARC = MAX RANGE
         const float ARC_WIDTH = 0.6f;      // arc spread (~35 degrees)
 
@@ -263,8 +263,8 @@ void Player::Render(SDL_Renderer* renderer) const
         {
             case AttackDirection::Right: baseAngle = 0.0f; break;
             case AttackDirection::Left:  baseAngle = PI; break;
-            case AttackDirection::Up:    baseAngle = -PI / 2.0f; MAX_RADIUS = 90; break;
-            case AttackDirection::Down:  baseAngle = PI / 2.0f; MAX_RADIUS = 90; break;
+            case AttackDirection::Up:    baseAngle = -PI / 2.0f; MAX_RADIUS = 120; break;
+            case AttackDirection::Down:  baseAngle = PI / 2.0f; MAX_RADIUS = 120; break;
             default: break;
         }
 
@@ -315,9 +315,9 @@ void Player::Render(SDL_Renderer* renderer) const
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // cyan
 
         const int layers = 4;
-        const float spacing = 18.0f;     // distance between wave layers
-        const float lineHalfHeight = 40.0f;  // half height of each line
-        const float startOffset = 20.0f; // how far from player it begins
+        const float spacing = 22.0f;     // distance between wave layers
+        const float lineHalfHeight = 55.0f;  // half height of each line
+        const float startOffset = 30.0f; // how far from player it begins
 
         float centerX = m_rect.x + m_rect.w * 0.5f;
         float centerY = m_rect.y + m_rect.h * 0.5f;
@@ -384,9 +384,9 @@ void Player::PerformAttack(Ball& ball)
     // --- Ball rect
     SDL_FRect& ballRect = ball.GetRect();
 
-    const float HITBOX_WIDTH  = 100.0f;
-    const float HITBOX_HEIGHT = 120.0f;
-    const float OFFSET = 20.0f;
+    const float HITBOX_WIDTH  = 120.0f;
+    const float HITBOX_HEIGHT = 150.0f;
+    const float OFFSET = 30.0f;
 
     SDL_FRect hitbox;
 
@@ -446,6 +446,8 @@ void Player::PerformAttack(Ball& ball)
     dx /= distance;
     dy /= distance;
 
+    ball.UnBunt();
+
     // Preserve magnitude + add impulse
     float currentVX = ball.getVelocity().x;
     float currentVY = ball.getVelocity().y;
@@ -470,9 +472,9 @@ void Player::Bunt(Ball& ball)
     m_isBunting = true;
     m_buntTimer = m_buntDuration;
 
-    const float HITBOX_WIDTH  = 80.0f;
-    const float HITBOX_HEIGHT = 90.0f;
-    const float OFFSET = 0.0f;
+    const float HITBOX_WIDTH  = 110.0f;
+    const float HITBOX_HEIGHT = 130.0f;
+    const float OFFSET = 15.0f;
 
     float centerX = m_rect.x + m_rect.w * 0.5f;
     float centerY = m_rect.y + m_rect.h * 0.5f;

@@ -132,6 +132,14 @@ void Ball::StartBunt(Player* bunter, AttackDirection dir)
     }
 }
 
+void Ball::UnBunt()
+{
+    m_isBunted = false;
+    m_preBuntOwner = nullptr;
+    m_buntTimer = 0.0f;
+    m_vel.x = m_preBuntSpeed;
+}
+
 SDL_FRect& Ball::GetRect()
 {
     return m_rect;

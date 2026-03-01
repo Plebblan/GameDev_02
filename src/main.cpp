@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
         std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
         return -1;
     }
-    if (TTF_Init() < 0) {
+    if (!TTF_Init()) {
         SDL_Log("TTF could not initialize! SDL_ttf Error: %s", SDL_GetError());
     }
 
@@ -26,19 +26,12 @@ int main(int argc, char* argv[])
     }
 
     // --- Create Game Objects ---
-<<<<<<< HEAD
-    Arena arena = Arena(1);
-    Ball ball(arena.getBallStart(), 20.0f);
-    Player player(Vector2(400.0f, 500.0f));
-    Player player2(Vector2(880.0f, 500.0f), 2);
-=======
     Arena arena;
     Vector2 ballStartPos(640.0f - 10.0f, 200.0f);
     Ball ball(ballStartPos, 20.0f);
     Player player(Vector2(600.0f, 500.0f));
     Player player2(Vector2(400.0f, 500.0f), 2);
     int scoreboard[2] = {0};
->>>>>>> f41d74a2d5d6fe450a7348854cd72a0a6ab69100
 
     bool running = true;
 
@@ -65,7 +58,14 @@ int main(int argc, char* argv[])
                 {
                     player2.PerformAttack(ball);
                 }
-                
+                    if (event.key.scancode == SDL_SCANCODE_K)
+                {
+                    player.Bunt(ball);
+                }
+                else if (event.key.scancode == SDL_SCANCODE_PERIOD)
+                {
+                    player2.Bunt(ball);
+                }
             }
         }
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
         player.HandleInput(keyboardState);
         player2.HandleInput(keyboardState);
         // ---- Update ----
-        ball.Update(deltaTime);
+        ball.Update(deltaTime,arena);
         arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
         player.Update(deltaTime, arena);

@@ -25,6 +25,7 @@ public:
     bool IsNeutral() const;
 
     void StartBunt(Player* bunter, AttackDirection dir);
+    void UnBunt();
 
 private:
     SDL_FRect m_rect;
