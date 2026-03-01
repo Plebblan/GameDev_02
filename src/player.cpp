@@ -282,100 +282,141 @@ void Player::PerformAttack(Ball& ball)
     m_isAttacking = true;
     m_attackTimer = m_attackDuration;
 
-    const float ATTACK_RADIUS = 100.0f;
     const float IMPULSE_STRENGTH = 400.0f;
-    const float MAX_SPEED = 2000.0f;
 
-    // Player center
-    float px = m_rect.x + m_rect.w * 0.5f;
-    float py = m_rect.y + m_rect.h * 0.5f;
+    // --- Player center (real center for direction)
+    float realPx = m_rect.x + m_rect.w * 0.5f;
+    float realPy = m_rect.y + m_rect.h * 0.5f;
 
-    // Ball center
+    // --- Ball rect
     SDL_FRect& ballRect = ball.GetRect();
+
+    const float HITBOX_WIDTH  = 120.0f;
+    const float HITBOX_HEIGHT = 120.0f;
+    const float OFFSET = 20.0f;
+
+    SDL_FRect hitbox;
+
+    switch (m_facing)
+    {
+        case AttackDirection::Right:
+            hitbox = { realPx + OFFSET,
+                       realPy - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Left:
+            hitbox = { realPx - OFFSET - HITBOX_WIDTH,
+                       realPy - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Up:
+            hitbox = { realPx - HITBOX_WIDTH * 0.5f,
+                       realPy - OFFSET - HITBOX_HEIGHT,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Down:
+            hitbox = { realPx - HITBOX_WIDTH * 0.5f,
+                       realPy + OFFSET,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        default:
+            return;
+    }
+
+    // ACTUAL HIT CHECK
+    if (!SDL_HasRectIntersectionFloat(&hitbox, &ballRect))
+    {
+        m_attackCooldown = 0.3f;
+        return;
+    }
+
+    // --- Ball center
     float bx = ballRect.x + ballRect.w * 0.5f;
     float by = ballRect.y + ballRect.h * 0.5f;
 
-    float dx = bx - px;
-    float dy = by - py;
+    // --- Direction based on real player center
+    float dx = bx - realPx;
+    float dy = by - realPy;
 
     float distance = std::sqrt(dx * dx + dy * dy);
+    if (distance < 0.01f)
+        return;
 
-    if (distance > ATTACK_RADIUS || distance <= 0.01f)
-    {
-        m_attackCooldown = 0.3f;
-                    return;
-    }
-    switch (m_facing)
-        {
-            case AttackDirection::Right:
-                if ( float(dx) / distance < float(m_rect.w) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-            case AttackDirection::Left:
-                if ( float(dx) / distance > float(m_rect.w) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-            case AttackDirection::Up:
-                if ( float(dy) / distance > float(m_rect.h) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-            case AttackDirection::Down:
-                if ( float(dy) / distance < float(m_rect.h) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-        }
-
-    // Normalize direction (THIS enables diagonal)
     dx /= distance;
     dy /= distance;
 
-    // Get current speed magnitude
+    // Preserve magnitude + add impulse
     float currentVX = ball.getVelocity().x;
     float currentVY = ball.getVelocity().y;
     float currentSpeed = std::sqrt(currentVX * currentVX +
                                    currentVY * currentVY);
 
-    // New speed = old magnitude + attack strength
     float newSpeed = currentSpeed + IMPULSE_STRENGTH;
 
-    if (newSpeed > MAX_SPEED)
-        newSpeed = MAX_SPEED;
-
-    // Redirect velocity to attack direction
     ball.getVelocity().x = dx * newSpeed;
     ball.getVelocity().y = dy * newSpeed;
 
-    m_attackCooldown = 0.3f;
-
-    // Set new owner
     ball.SetOwner(this);
+
+    m_attackCooldown = 0.3f;
 }
 
 void Player::Bunt(Ball& ball)
 {
-    const float BUNT_RADIUS = 80.0f;
+    const float HITBOX_WIDTH  = 80.0f;
+    const float HITBOX_HEIGHT = 80.0f;
+    const float OFFSET = 0.0f;
 
-    float px = m_rect.x + m_rect.w * 0.5f;
-    float py = m_rect.y + m_rect.h * 0.5f;
+    float centerX = m_rect.x + m_rect.w * 0.5f;
+    float centerY = m_rect.y + m_rect.h * 0.5f;
+
+    SDL_FRect hitbox;
+
+    switch (m_facing)
+    {
+        case AttackDirection::Right:
+            hitbox = { centerX + OFFSET,
+                       centerY - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Left:
+            hitbox = { centerX - OFFSET - HITBOX_WIDTH,
+                       centerY - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Up:
+            hitbox = { centerX - HITBOX_WIDTH * 0.5f,
+                       centerY - OFFSET - HITBOX_HEIGHT,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Down:
+            hitbox = { centerX - HITBOX_WIDTH * 0.5f,
+                       centerY + OFFSET,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        default:
+            return;
+    }
 
     SDL_FRect& ballRect = ball.GetRect();
-    float bx = ballRect.x + ballRect.w * 0.5f;
-    float by = ballRect.y + ballRect.h * 0.5f;
 
-    float dx = bx - px;
-    float dy = by - py;
-
-    float distSq = dx * dx + dy * dy;
-
-    if (distSq <= BUNT_RADIUS * BUNT_RADIUS)
+    if (SDL_HasRectIntersectionFloat(&hitbox, &ballRect))
     {
         ball.StartBunt(this, m_facing);
     }
