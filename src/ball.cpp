@@ -108,7 +108,7 @@ void Ball::StartBunt(Player* bunter, AttackDirection dir)
 {
     if (m_state != BallState::Bunted)
     {
-        m_preBuntOwner = m_owner;
+        m_preBuntOwner = bunter;
         m_preBuntSpeed = m_vel.length();
     }
 

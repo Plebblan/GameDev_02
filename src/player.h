@@ -24,6 +24,9 @@ public:
     int GetPlayerNumber() const { return m_Noplayer; }
     bool IsDead();
     void Reset(Vector2 vec);
+    void kill();
+    Vector2 getPos();
+    bool cloneReady();
 private:
     SDL_FRect m_rect;
 
@@ -64,7 +67,7 @@ private:
     int m_maxHp = 200; // Để tính tỷ lệ % thanh máu
     char pNum[3];
     TTF_Font* font;
-    int dur = 3;
+    bool m_cloneUsed = false;
 };
 
 #endif
