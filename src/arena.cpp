@@ -44,14 +44,14 @@ Arena::Arena(int ver, int width, int height, int wallThickness)
     if (ver == 1){
         m_walls.push_back({
             static_cast<float>(180),
-            static_cast<float>(480),
+            static_cast<float>(360),
             static_cast<float>(345),
             static_cast<float>(m_wallThickness)
         });
         m_canStep.push_back(true);
         m_walls.push_back({
-            static_cast<float>(825),
-            static_cast<float>(480),
+            static_cast<float>(765),
+            static_cast<float>(360),
             static_cast<float>(345),
             static_cast<float>(m_wallThickness)
         });

@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     }
 
     // --- Create Game Objects ---
-    Arena arena;
+    Arena arena(1);
     Ball ball(arena.getBallStart(), 40.0f);
     Player player(Vector2(600.0f, 500.0f));
     Player player2(Vector2(400.0f, 500.0f), 2);
