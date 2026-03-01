@@ -27,8 +27,7 @@ int main(int argc, char* argv[])
 
     // --- Create Game Objects ---
     Arena arena;
-    Vector2 ballStartPos(640.0f - 10.0f, 200.0f);
-    Ball ball(ballStartPos, 20.0f);
+    Ball ball(arena.getBallStart(), 20.0f);
     Player player(Vector2(600.0f, 500.0f));
     Player player2(Vector2(400.0f, 500.0f), 2);
     int scoreboard[2] = {0};
@@ -82,8 +81,8 @@ int main(int argc, char* argv[])
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
         bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
         if (hurted){
-            ball.GetRect().x = ballStartPos.x;
-            ball.GetRect().y = ballStartPos.y;
+            ball.GetRect().x = arena.getBallStart().x;
+            ball.GetRect().y = arena.getBallStart().y;
             ball.setVelocity(Vector2(0.0f, 0.0f));
             ball.SetOwner(nullptr);
             if (player.IsDead()){
@@ -99,7 +98,7 @@ int main(int argc, char* argv[])
         player.HandleInput(keyboardState);
         player2.HandleInput(keyboardState);
         // ---- Update ----
-        ball.Update(deltaTime,arena);
+        ball.Update(deltaTime, arena);
         arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
         player.Update(deltaTime, arena);

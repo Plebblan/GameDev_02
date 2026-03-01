@@ -57,6 +57,7 @@ private:
     int m_maxHp = 200; // Để tính tỷ lệ % thanh máu
     char pNum[3];
     TTF_Font* font;
+    int dur = 3;
 };
 
 #endif

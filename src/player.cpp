@@ -40,7 +40,7 @@ Player::Player(Vector2 pos, int No)
       m_buntTimer(0.0f),
       m_buntDuration(0.15f)
 {
-    m_rect = { pos.x, pos.y, 40.0f, 100.0f };
+    m_rect = { pos.x, pos.y, 40.0f, 150.0f };
     m_hp = 200;
     m_maxHp = 200; 
     font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 20);
@@ -227,24 +227,36 @@ void Player::Render(SDL_Renderer* renderer) const
 
     
 
-    SDL_FRect head = { centerX - 5.0f, m_rect.y, 10.0f, 10.0f };
-    SDL_RenderFillRect(renderer, &head);
+    SDL_FRect head = { centerX - 15.0f, m_rect.y, 15.0f, 15.0f };
+    for (int w = centerX - 15.0f; w <= centerX + 15.0f; w++){
+        for (int h = m_rect.y; h <= m_rect.y + 30.0f; h++){
+            float dx = w - centerX;
+            float dy = h - m_rect.y - 15.0f;
+            if (dx * dx + dy * dy <= 15.0f * 15.0f){
+                SDL_RenderPoint(renderer, w, h);
+            }
+        }
+    }
 
     SDL_RenderLine(renderer,
-        centerX, m_rect.y + 10.0f,
-        centerX, m_rect.y + 40.0f);
+        centerX, m_rect.y,
+        centerX, m_rect.y + m_rect.h * 0.5f);
 
     SDL_RenderLine(renderer,
-        centerX - 10.0f, m_rect.y + 20.0f,
-        centerX + 10.0f, m_rect.y + 20.0f);
+        centerX, m_rect.y + 30.0f,
+        centerX - 20.0f, m_rect.y + m_rect.h * 0.5f);
 
     SDL_RenderLine(renderer,
-        centerX, m_rect.y + 40.0f,
-        centerX - 10.0f, m_rect.y + 60.0f);
+        centerX, m_rect.y + 30.0f,
+        centerX + 20.0f, m_rect.y + m_rect.h * 0.5f);
 
     SDL_RenderLine(renderer,
-        centerX, m_rect.y + 40.0f,
-        centerX + 10.0f, m_rect.y + 60.0f);
+        centerX, m_rect.y + m_rect.h * 0.5f,
+        m_rect.x, m_rect.y + m_rect.h);
+
+    SDL_RenderLine(renderer,
+        centerX, m_rect.y + m_rect.h * 0.5f,
+        m_rect.x + m_rect.w, m_rect.y + m_rect.h);
 
     if (m_isAttacking)
     {
@@ -567,7 +579,7 @@ bool Player::IsDead(){
     return m_hp <= 0;
 }
 void Player::Reset(Vector2 vec){
-    m_rect = { vec.x, vec.y, 20.0f, 60.0f };
+    m_rect = { vec.x, vec.y, m_rect.w, m_rect.h };
     m_hp = 200;
 }
 Player::~Player()
