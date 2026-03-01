@@ -13,6 +13,9 @@ int main(int argc, char* argv[])
         std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
         return -1;
     }
+    if (TTF_Init() < 0) {
+        SDL_Log("TTF could not initialize! SDL_ttf Error: %s", SDL_GetError());
+    }
 
     GameWindow *window = new GameWindow();
     if (window->init("Ricochet test") != 0){
@@ -23,10 +26,12 @@ int main(int argc, char* argv[])
     }
 
     // --- Create Game Objects ---
-    Arena arena = Arena(1);
-    Ball ball(arena.getBallStart(), 20.0f);
+    Arena arena;
+    Vector2 ballStartPos(640.0f - 10.0f, 200.0f);
+    Ball ball(ballStartPos, 20.0f);
     Player player(Vector2(600.0f, 500.0f));
     Player player2(Vector2(400.0f, 500.0f), 2);
+    int scoreboard[2] = {0};
 
     bool running = true;
 
@@ -42,12 +47,6 @@ int main(int argc, char* argv[])
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
 
-            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
-                int x = event.button.x;
-                int y = event.button.y;
-                printf("%d, %d\n", x, y);
-            }
-
             if (event.type == SDL_EVENT_KEY_DOWN &&
                 event.key.repeat == false)
             {
@@ -59,11 +58,6 @@ int main(int argc, char* argv[])
                 {
                     player2.PerformAttack(ball);
                 }
-                else if (event.key.scancode == SDL_SCANCODE_K)
-                    player.Bunt(ball);
-
-                if (event.key.scancode == SDL_SCANCODE_PERIOD)
-                    player2.Bunt(ball);
                 
             }
         }
@@ -79,17 +73,26 @@ int main(int argc, char* argv[])
 
         // ---- Input ----
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
-
+        bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
+        if (hurted){
+            ball.GetRect().x = ballStartPos.x;
+            ball.GetRect().y = ballStartPos.y;
+            ball.setVelocity(Vector2(0.0f, 0.0f));
+            ball.SetOwner(nullptr);
+            if (player.IsDead()){
+                scoreboard[1] += 1; 
+                player.Reset(Vector2(600.0f, 500.0f));
+            }
+            else if (player2.IsDead())
+            {
+                scoreboard[0] += 1;
+                player2.Reset(Vector2(400.0f, 500.0f));
+            }
+        }
         player.HandleInput(keyboardState);
         player2.HandleInput(keyboardState);
         // ---- Update ----
-        ball.Update(deltaTime, arena);
-        bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
-        if (hurted){
-            ball.GetRect().x = arena.getBallStart().x;
-            ball.GetRect().y = arena.getBallStart().y;
-            ball.setVelocity(Vector2(0.0f, 0.0f));
-        }
+        ball.Update(deltaTime);
         arena.CheckCollision(ball.GetRect(), ball.getVelocity());
 
         player.Update(deltaTime, arena);
