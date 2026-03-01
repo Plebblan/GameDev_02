@@ -3,7 +3,6 @@
 
 #include "game.h"
 #include <vector>
-#include <cmath>
 #include <algorithm>
 
 class Arena
@@ -17,18 +16,21 @@ public:
     void CheckCollision(SDL_FRect& ballRect, Vector2 &vel) const;
 
     void DrawScoreboard(SDL_Renderer* renderer, TTF_Font* fontScore, int *scoreboard);
+    void CheckCollisionCCD(SDL_FRect &ballRect, Vector2 &vel, float dt) const;
 
     int GetWidth() const { return m_width; }
     int GetHeight() const { return m_height; }
+    bool collidePlayer(SDL_FRect& playerRect, Vector2& playerVel);
     Vector2 getBallStart();
 
 private:
     int m_width;
     int m_height;
     int m_wallThickness;
-    Vector2 m_ballStartPos = Vector2(640.0f - 10.0f, 200.0f);
+    Vector2 m_ballStartPos = Vector2(640.0f, 150.0f);
 
     std::vector<SDL_FRect> m_walls;
+    std::vector<bool> m_canStep;
 };
 
 

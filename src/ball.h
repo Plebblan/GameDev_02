@@ -2,15 +2,16 @@
 #define BALL_H
 
 #include "game.h"
+#include "arena.h"
 
 class Player;
 
 class Ball
 {
 public:
-    Ball(Vector2 pos, float size = 20.0f);
+    Ball(Vector2 pos, float size = 50.0f);
 
-    void Update(float deltaTime);
+    void Update(float deltaTime, Arena arena);
     void Render(SDL_Renderer* renderer) const;
 
     SDL_FRect& GetRect();
@@ -24,6 +25,7 @@ public:
     bool IsNeutral() const;
 
     void StartBunt(Player* bunter, AttackDirection dir);
+    void UnBunt();
 
 private:
     SDL_FRect m_rect;

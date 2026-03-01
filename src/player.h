@@ -3,6 +3,7 @@
 
 #include "game.h"
 #include "ball.h"
+#include "arena.h"
 #include <cmath>
 
 class Ball;
@@ -13,7 +14,7 @@ public:
     Player(Vector2 pos, int No = 1);
     ~Player();
     void HandleInput(const bool* keyboardState);
-    void Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness);
+    void Update(float deltaTime, Arena arena);
     void Render(SDL_Renderer* renderer) const;
     void PerformAttack(Ball& ball);
     void Bunt(Ball& ball);
@@ -37,8 +38,8 @@ private:
     float m_jumpHoldTime;
 
     AttackDirection m_facing;
-    float m_attackCooldown;
 
+    float m_attackCooldown;
     bool  m_isAttacking;
     float m_attackTimer;
     float m_attackDuration;
@@ -46,10 +47,17 @@ private:
     int  m_jumpCount;
     int  m_maxJumps;
     bool m_jumpPressedLastFrame;
+
+    float m_buntCooldown;
+    bool m_isBunting;
+    float m_buntTimer;
+    float m_buntDuration;
+    
     float m_nameW = 0, m_nameH = 0;
     int m_maxHp = 200; // Để tính tỷ lệ % thanh máu
     char pNum[3];
     TTF_Font* font;
+    int dur = 3;
 };
 
 #endif

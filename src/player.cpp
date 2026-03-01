@@ -30,13 +30,17 @@ Player::Player(Vector2 pos, int No)
       m_attackCooldown(0.0f),
       m_isAttacking(false),
       m_attackTimer(0.0f),
-      m_attackDuration(0.15f),
+      m_attackDuration(0.25f),
       m_jumpCount(0),
       m_maxJumps(2),
       m_Noplayer(No),
-      m_jumpPressedLastFrame(false)
+      m_jumpPressedLastFrame(false),
+      m_buntCooldown(0.0f),
+      m_isBunting(false),
+      m_buntTimer(0.0f),
+      m_buntDuration(0.15f)
 {
-    m_rect = { pos.x, pos.y, 20.0f, 60.0f };
+    m_rect = { pos.x, pos.y, 40.0f, 150.0f };
     m_hp = 200;
     m_maxHp = 200; 
     font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 20);
@@ -126,7 +130,7 @@ void Player::HandleInput(const bool* keyboardState)
     m_jumpPressedLastFrame = jump;
 }
 
-void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallThickness)
+void Player::Update(float deltaTime, Arena arena)
 {
     float previousBottom = m_rect.y + m_rect.h;
     
@@ -140,6 +144,18 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
         m_attackTimer -= deltaTime;
         if (m_attackTimer <= 0.0f)
             m_isAttacking = false;
+    }
+
+    // Cooldown timer
+    if (m_buntCooldown > 0.0f)
+        m_buntCooldown -= deltaTime;
+
+    // Bunt active window
+    if (m_isBunting)
+    {
+        m_buntTimer -= deltaTime;
+        if (m_buntTimer <= 0.0f)
+            m_isBunting = false;
     }
 
     // Apply gravity
@@ -157,54 +173,14 @@ void Player::Update(float deltaTime, int arenaWidth, int arenaHeight, int wallTh
     m_rect.x += m_vel.x * deltaTime;
     m_rect.y += m_vel.y * deltaTime;
 
-    float floorY   = arenaHeight - wallThickness;
-    float ceilingY = wallThickness;
-    float leftWall = wallThickness;
-    float rightWall = arenaWidth - wallThickness;
-
     bool wasGrounded = m_isGrounded;
-    m_isGrounded = false;
-
-    // ---------------- FLOOR ----------------
-    float currentBottom = m_rect.y + m_rect.h;
-
-    // Only land if falling and crossing the floor
-    if (m_vel.y >= 0.0f &&
-        previousBottom <= floorY &&
-        currentBottom >= floorY)
-    {
-        m_rect.y = floorY - m_rect.h;
-        m_vel.y = 0.0f;
-        m_isGrounded = true;
-
-        if (!wasGrounded)
+    m_isGrounded = arena.collidePlayer(m_rect, m_vel);
+    if (m_isGrounded && !wasGrounded)
         {
             m_jumpCount = 0;
             m_jumpHeld = false;
             m_jumpPressedLastFrame = false;
         }
-    }
-
-    // ---------------- CEILING ----------------
-    if (m_rect.y <= ceilingY)
-    {
-        m_rect.y = ceilingY;
-
-        if (m_vel.y < 0.0f)
-            m_vel.y = 0.0f;
-    }
-
-    // ---------------- LEFT WALL ----------------
-    if (m_rect.x <= leftWall)
-    {
-        m_rect.x = leftWall;
-    }
-
-    // ---------------- RIGHT WALL ----------------
-    if (m_rect.x + m_rect.w >= rightWall)
-    {
-        m_rect.x = rightWall - m_rect.w;
-    }
 }
 
 void Player::Render(SDL_Renderer* renderer) const
@@ -247,74 +223,156 @@ void Player::Render(SDL_Renderer* renderer) const
     if (m_Noplayer == 1)
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     else
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 120, 255, 255);
 
     
 
-    SDL_FRect head = { centerX - 5.0f, m_rect.y, 10.0f, 10.0f };
-    SDL_RenderFillRect(renderer, &head);
+    SDL_FRect head = { centerX - 15.0f, m_rect.y, 15.0f, 15.0f };
+    for (int w = centerX - 15.0f; w <= centerX + 15.0f; w++){
+        for (int h = m_rect.y; h <= m_rect.y + 30.0f; h++){
+            float dx = w - centerX;
+            float dy = h - m_rect.y - 15.0f;
+            if (dx * dx + dy * dy <= 15.0f * 15.0f){
+                SDL_RenderPoint(renderer, w, h);
+            }
+        }
+    }
 
     SDL_RenderLine(renderer,
-        centerX, m_rect.y + 10.0f,
-        centerX, m_rect.y + 40.0f);
+        centerX, m_rect.y,
+        centerX, m_rect.y + m_rect.h * 0.5f);
 
     SDL_RenderLine(renderer,
-        centerX - 10.0f, m_rect.y + 20.0f,
-        centerX + 10.0f, m_rect.y + 20.0f);
+        centerX, m_rect.y + 30.0f,
+        centerX - 20.0f, m_rect.y + m_rect.h * 0.5f);
 
     SDL_RenderLine(renderer,
-        centerX, m_rect.y + 40.0f,
-        centerX - 10.0f, m_rect.y + 60.0f);
+        centerX, m_rect.y + 30.0f,
+        centerX + 20.0f, m_rect.y + m_rect.h * 0.5f);
 
     SDL_RenderLine(renderer,
-        centerX, m_rect.y + 40.0f,
-        centerX + 10.0f, m_rect.y + 60.0f);
+        centerX, m_rect.y + m_rect.h * 0.5f,
+        m_rect.x, m_rect.y + m_rect.h);
+
+    SDL_RenderLine(renderer,
+        centerX, m_rect.y + m_rect.h * 0.5f,
+        m_rect.x + m_rect.w, m_rect.y + m_rect.h);
 
     if (m_isAttacking)
     {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-
-        const float radius = 100.0f;
-        const int segments = 20;
+        const int LAYERS = 6;              // how many arcs
+        const int SEGMENTS = 28;           // smoothness
+        const float BASE_RADIUS = 20.0f;   // inner arc
+        float MAX_RADIUS  = 150.0f;  // OUTER ARC = MAX RANGE
+        const float ARC_WIDTH = 0.6f;      // arc spread (~35 degrees)
 
         float centerX = m_rect.x + m_rect.w / 2.0f;
         float centerY = m_rect.y + m_rect.h / 2.0f;
 
-        float startAngle = 0.0f;
-        float endAngle = 0.0f;
+        float baseAngle = 0.0f;
 
         switch (m_facing)
         {
-            case AttackDirection::Right:
-                startAngle = -0.5f;
-                endAngle   = 0.5f;
-                break;
-            case AttackDirection::Left:
-                startAngle = 2.64f;   // approx pi - 0.5
-                endAngle   = 3.64f;   // approx pi + 0.5
-                break;
-            case AttackDirection::Up:
-                startAngle = -2.07f;  // approx -pi/2 - 0.5
-                endAngle   = -1.07f;  // approx -pi/2 + 0.5
-                break;
-            case AttackDirection::Down:
-                startAngle = 1.07f;   // approx pi/2 - 0.5
-                endAngle   = 2.07f;   // approx pi/2 + 0.5
-                break;
+            case AttackDirection::Right: baseAngle = 0.0f; break;
+            case AttackDirection::Left:  baseAngle = PI; break;
+            case AttackDirection::Up:    baseAngle = -PI / 2.0f; MAX_RADIUS = 150; break;
+            case AttackDirection::Down:  baseAngle = PI / 2.0f; MAX_RADIUS = 150; break;
+            default: break;
         }
 
-        float step = (endAngle - startAngle) / segments;
+        float startAngle = baseAngle - ARC_WIDTH;
+        float endAngle   = baseAngle + ARC_WIDTH;
 
-        for (int i = 0; i < segments; ++i)
+        for (int layer = 1; layer <= LAYERS; layer++)
         {
-            float a1 = startAngle + step * i;
-            float a2 = startAngle + step * (i + 1);
+            float t = float(layer) / LAYERS;
 
-            float x1 = centerX + cosf(a1) * radius;
-            float y1 = centerY + sinf(a1) * radius;
+            // Radius grows outward
+            float radius = BASE_RADIUS + t * (MAX_RADIUS - BASE_RADIUS);
 
-            float x2 = centerX + cosf(a2) * radius;
-            float y2 = centerY + sinf(a2) * radius;
+            // Slight alpha fade outward
+            Uint8 alpha = static_cast<Uint8>(200 * t + 55);
+
+            if (m_Noplayer == 1)
+                SDL_SetRenderDrawColor(renderer, 255, 165, 0, alpha);
+            else
+                SDL_SetRenderDrawColor(renderer, 255, 0, 255, alpha);
+
+            float step = (endAngle - startAngle) / SEGMENTS;
+
+            for (int i = 0; i < SEGMENTS; ++i)
+            {
+                float a1 = startAngle + step * i;
+                float a2 = startAngle + step * (i + 1);
+
+                float x1 = centerX + cosf(a1) * radius;
+                float y1 = centerY + sinf(a1) * radius;
+
+                float x2 = centerX + cosf(a2) * radius;
+                float y2 = centerY + sinf(a2) * radius;
+
+                SDL_RenderLine(renderer,
+                    static_cast<int>(x1),
+                    static_cast<int>(y1),
+                    static_cast<int>(x2),
+                    static_cast<int>(y2));
+            }
+        }
+    }
+    if (m_isBunting)
+    {
+        if (m_Noplayer == 2)
+            SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); // cyan
+        else
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // cyan
+
+        const int layers = 4;
+        const float spacing = 22.0f;     // distance between wave layers
+        const float lineHalfHeight = 55.0f;  // half height of each line
+        const float startOffset = 10.0f; // how far from player it begins
+
+        float centerX = m_rect.x + m_rect.w * 0.5f;
+        float centerY = m_rect.y + m_rect.h * 0.5f;
+
+        for (int i = 0; i < layers; ++i)
+        {
+            float offset = startOffset + i * spacing;
+
+            float x1, y1, x2, y2;
+
+            switch (m_facing)
+            {
+                case AttackDirection::Right:
+                    x1 = centerX + offset;
+                    y1 = centerY - lineHalfHeight;
+                    x2 = centerX + offset;
+                    y2 = centerY + lineHalfHeight;
+                    break;
+
+                case AttackDirection::Left:
+                    x1 = centerX - offset;
+                    y1 = centerY - lineHalfHeight;
+                    x2 = centerX - offset;
+                    y2 = centerY + lineHalfHeight;
+                    break;
+
+                case AttackDirection::Up:
+                    x1 = centerX - lineHalfHeight;
+                    y1 = centerY - offset;
+                    x2 = centerX + lineHalfHeight;
+                    y2 = centerY - offset;
+                    break;
+
+                case AttackDirection::Down:
+                    x1 = centerX - lineHalfHeight;
+                    y1 = centerY + offset;
+                    x2 = centerX + lineHalfHeight;
+                    y2 = centerY + offset;
+                    break;
+
+                default:
+                    continue;
+            }
 
             SDL_RenderLine(renderer, x1, y1, x2, y2);
         }
@@ -329,103 +387,154 @@ void Player::PerformAttack(Ball& ball)
     m_isAttacking = true;
     m_attackTimer = m_attackDuration;
 
-    const float ATTACK_RADIUS = 100.0f;
     const float IMPULSE_STRENGTH = 400.0f;
-    const float MAX_SPEED = 2000.0f;
 
-    // Player center
-    float px = m_rect.x + m_rect.w * 0.5f;
-    float py = m_rect.y + m_rect.h * 0.5f;
+    // --- Player center (real center for direction)
+    float realPx = m_rect.x + m_rect.w * 0.5f;
+    float realPy = m_rect.y + m_rect.h * 0.5f;
 
-    // Ball center
+    // --- Ball rect
     SDL_FRect& ballRect = ball.GetRect();
+
+    const float HITBOX_WIDTH  = 150.0f;
+    const float HITBOX_HEIGHT = 160.0f;
+    const float OFFSET = 20.0f;
+
+    SDL_FRect hitbox;
+
+    switch (m_facing)
+    {
+        case AttackDirection::Right:
+            hitbox = { realPx + OFFSET,
+                       realPy - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Left:
+            hitbox = { realPx - OFFSET - HITBOX_WIDTH,
+                       realPy - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Up:
+            hitbox = { realPx - HITBOX_HEIGHT * 0.5f,
+                       realPy - OFFSET - HITBOX_WIDTH,
+                       HITBOX_HEIGHT,
+                       HITBOX_WIDTH };
+            break;
+
+        case AttackDirection::Down:
+            hitbox = { realPx - HITBOX_HEIGHT * 0.5f,
+                       realPy + OFFSET,
+                       HITBOX_HEIGHT,
+                       HITBOX_WIDTH };
+            break;
+
+        default:
+            return;
+    }
+
+    // ACTUAL HIT CHECK
+    if (!SDL_HasRectIntersectionFloat(&hitbox, &ballRect))
+    {
+        m_attackCooldown = 0.3f;
+        return;
+    }
+
+    // --- Ball center
     float bx = ballRect.x + ballRect.w * 0.5f;
     float by = ballRect.y + ballRect.h * 0.5f;
 
-    float dx = bx - px;
-    float dy = by - py;
+    // --- Direction based on real player center
+    float dx = bx - realPx;
+    float dy = by - realPy;
 
     float distance = std::sqrt(dx * dx + dy * dy);
+    if (distance < 0.01f)
+        return;
 
-    if (distance > ATTACK_RADIUS || distance <= 0.01f)
-    {
-        m_attackCooldown = 0.3f;
-                    return;
-    }
-    switch (m_facing)
-        {
-            case AttackDirection::Right:
-                if ( float(dx) / distance < float(m_rect.w) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-            case AttackDirection::Left:
-                if ( float(dx) / distance > float(m_rect.w) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-            case AttackDirection::Up:
-                if ( float(dy) / distance > float(m_rect.h) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-            case AttackDirection::Down:
-                if ( float(dy) / distance < float(m_rect.h) / std::sqrt(m_rect.w*m_rect.w + m_rect.h*m_rect.w)){
-                    m_attackCooldown = 0.3f;
-                    return;
-                }
-                break;
-        }
-
-    // Normalize direction (THIS enables diagonal)
     dx /= distance;
     dy /= distance;
 
-    // Get current speed magnitude
+    ball.UnBunt();
+
+    // Preserve magnitude + add impulse
     float currentVX = ball.getVelocity().x;
     float currentVY = ball.getVelocity().y;
     float currentSpeed = std::sqrt(currentVX * currentVX +
                                    currentVY * currentVY);
 
-    // New speed = old magnitude + attack strength
     float newSpeed = currentSpeed + IMPULSE_STRENGTH;
 
-    if (newSpeed > MAX_SPEED)
-        newSpeed = MAX_SPEED;
-
-    // Redirect velocity to attack direction
     ball.getVelocity().x = dx * newSpeed;
     ball.getVelocity().y = dy * newSpeed;
 
-    m_attackCooldown = 0.3f;
-
-    // Set new owner
     ball.SetOwner(this);
+
+    m_attackCooldown = 0.4f;
 }
 
 void Player::Bunt(Ball& ball)
 {
-    const float BUNT_RADIUS = 80.0f;
+    if (m_buntCooldown > 0.0f)
+        return;
+    
+    m_isBunting = true;
+    m_buntTimer = m_buntDuration;
 
-    float px = m_rect.x + m_rect.w * 0.5f;
-    float py = m_rect.y + m_rect.h * 0.5f;
+    const float HITBOX_WIDTH  = 110.0f;
+    const float HITBOX_HEIGHT = 130.0f;
+    const float OFFSET = 10.0f;
+
+    float centerX = m_rect.x + m_rect.w * 0.5f;
+    float centerY = m_rect.y + m_rect.h * 0.5f;
+
+    SDL_FRect hitbox;
+
+    switch (m_facing)
+    {
+        case AttackDirection::Right:
+            hitbox = { centerX + OFFSET,
+                       centerY - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Left:
+            hitbox = { centerX - OFFSET - HITBOX_WIDTH,
+                       centerY - HITBOX_HEIGHT * 0.5f,
+                       HITBOX_WIDTH,
+                       HITBOX_HEIGHT };
+            break;
+
+        case AttackDirection::Up:
+            hitbox = { centerX - HITBOX_HEIGHT * 0.5f,
+                       centerY - OFFSET - HITBOX_WIDTH,
+                       HITBOX_HEIGHT,
+                       HITBOX_WIDTH };
+            break;
+
+        case AttackDirection::Down:
+            hitbox = { centerX - HITBOX_HEIGHT * 0.5f,
+                       centerY + OFFSET,
+                       HITBOX_HEIGHT,
+                       HITBOX_WIDTH };
+            break;
+
+        default:
+            return;
+    }
 
     SDL_FRect& ballRect = ball.GetRect();
-    float bx = ballRect.x + ballRect.w * 0.5f;
-    float by = ballRect.y + ballRect.h * 0.5f;
 
-    float dx = bx - px;
-    float dy = by - py;
-
-    float distSq = dx * dx + dy * dy;
-
-    if (distSq <= BUNT_RADIUS * BUNT_RADIUS)
+    if (SDL_HasRectIntersectionFloat(&hitbox, &ballRect))
     {
         ball.StartBunt(this, m_facing);
     }
+
+    m_buntCooldown = 0.2f;
 }
 
 bool Player::Check_collision(Ball& ball)
@@ -470,7 +579,7 @@ bool Player::IsDead(){
     return m_hp <= 0;
 }
 void Player::Reset(Vector2 vec){
-    m_rect = { vec.x, vec.y, 20.0f, 60.0f };
+    m_rect = { vec.x, vec.y, m_rect.w, m_rect.h };
     m_hp = 200;
 }
 Player::~Player()

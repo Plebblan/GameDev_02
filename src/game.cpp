@@ -24,6 +24,20 @@ void Vector2::add(float x, float y) {
 	this->y += y;
 }
 
+Vector2 Vector2::add_N(Vector2 v){
+	Vector2 ret;
+	ret.x = this->x + v.x;
+	ret.y = this->y + v.y;
+	return ret;
+}
+
+Vector2 Vector2::add_N(float f){
+	Vector2 ret;
+	ret.x = this->x + f;
+	ret.y = this->y + f;
+	return ret;
+}
+
 void Vector2::sub(Vector2 v) {
 	this->x -= v.x;
 	this->y -= v.y;
@@ -32,6 +46,20 @@ void Vector2::sub(Vector2 v) {
 void Vector2::sub(float x, float y) {
 	this->x -= x;
 	this->y -= y;
+}
+
+Vector2 Vector2::sub_N(Vector2 v){
+	Vector2 ret;
+	ret.x = this->x - v.x;
+	ret.y = this->y - v.y;
+	return ret;
+}
+
+Vector2 Vector2::sub_N(float f){
+	Vector2 ret;
+	ret.x = this->x - f;
+	ret.y = this->y - f;
+	return ret;
 }
 
 void Vector2::mul(float f) {
@@ -52,6 +80,13 @@ Vector2 Vector2::mul_N(float f) {
 	Vector2 ret;
 	ret.x = this->x*f;
 	ret.y = this->y*f;
+	return ret;
+}
+
+Vector2 Vector2::mul_N(Vector2 v) {
+	Vector2 ret;
+	ret.x = this->x*v.x;
+	ret.y = this->y*v.y;
 	return ret;
 }
 

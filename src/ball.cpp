@@ -3,7 +3,7 @@
 #include <cmath>
 
 static constexpr float GRAVITY = 10.0f;        // Very weak gravity
-static constexpr float BOUNCE_LOSS= 3.0f;     // Very small energy loss
+static constexpr float BOUNCE_LOSS= 10.0f;     // Very small energy loss
 
 Ball::Ball(Vector2 pos, float size)
     : m_vel(Vector2()),
@@ -23,7 +23,7 @@ Ball::Ball(Vector2 pos, float size)
     };
 }
 
-void Ball::Update(float dt)
+void Ball::Update(float dt, Arena arena)
 {
     if (m_isBunted)
     {
@@ -46,8 +46,9 @@ void Ball::Update(float dt)
     else
         m_vel.y += GRAVITY * dt;
 
-    m_rect.x += m_vel.x * dt;
-    m_rect.y += m_vel.y * dt;
+    // m_rect.x += m_vel.x * dt;
+    // m_rect.y += m_vel.y * dt;
+    arena.CheckCollisionCCD(m_rect, m_vel, dt);
 }
 
 void Ball::Render(SDL_Renderer* renderer) const
@@ -128,6 +129,19 @@ void Ball::StartBunt(Player* bunter, AttackDirection dir)
             m_vel.x = 0.0f;
             m_vel.y = upwardForce;
             break;
+    }
+}
+
+void Ball::UnBunt()
+{
+    m_isBunted = false;
+    m_preBuntOwner = nullptr;
+    m_buntTimer = 0.0f;
+    if (m_preBuntSpeed != 0)
+    {
+        m_vel.x = m_preBuntSpeed;
+        m_vel.y = 0;
+        m_preBuntSpeed = 0;
     }
 }
 
