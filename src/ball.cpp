@@ -9,7 +9,6 @@ Ball::Ball(Vector2 pos, float size)
     : m_vel(Vector2()),
       m_speed(0.0f),
       m_owner(nullptr),
-      m_previousOwner(nullptr),
       m_preBuntOwner(nullptr),
       m_neutralTimer(9999.0f),
       m_isBunted(false),
@@ -24,20 +23,14 @@ Ball::Ball(Vector2 pos, float size)
     };
 }
 
-void Ball::Update(float deltaTime)
+void Ball::Update(float dt)
 {
-    // =========================
-    // BUNT ARC TAKES CONTROL
-    // =========================
     if (m_isBunted)
     {
-        m_buntTimer += deltaTime;
+        m_buntTimer += dt;
 
-        float t = m_buntTimer / m_buntDuration;
-
-        if (t >= 1.0f)
+        if (m_buntTimer >= m_buntDuration)
         {
-            // ---- Finish Bunt ----
             m_isBunted = false;
 
             m_owner = m_preBuntOwner;
@@ -45,43 +38,16 @@ void Ball::Update(float deltaTime)
             float burst = 500.0f;
 
             m_vel.x = 0.0f;
-            m_vel.y = burst;   // straight downward spike
-
+            m_vel.y = burst; // spike down
             m_preBuntOwner = nullptr;
-            return;
         }
-
-        // Horizontal interpolation
-        m_rect.x = m_buntStartX + m_buntDistance * t;
-
-        // Parabolic arc
-        float arc = 4.0f * m_buntHeight * t * (1.0f - t);
-        m_rect.y = m_buntStartY - arc;
-
-        return;  // IMPORTANT: stop normal physics while bunted
+        m_vel.y += 100.0f * dt;
     }
+    else
+        m_vel.y += GRAVITY * dt;
 
-    // =========================
-    // NORMAL NEUTRAL TIMER
-    // =========================
-    if (m_owner == nullptr && m_neutralTimer > 0.0f)
-    {
-        m_neutralTimer -= deltaTime;
-
-        if (m_neutralTimer <= 0.0f)
-        {
-            m_owner = m_previousOwner;
-            m_neutralTimer = 0.0f;
-        }
-    }
-
-    // =========================
-    // NORMAL PHYSICS
-    // =========================
-    m_vel.y += GRAVITY * deltaTime;
-
-    m_rect.x += m_vel.x * deltaTime;
-    m_rect.y += m_vel.y * deltaTime;
+    m_rect.x += m_vel.x * dt;
+    m_rect.y += m_vel.y * dt;
 }
 
 void Ball::Render(SDL_Renderer* renderer) const
@@ -126,45 +92,40 @@ void Ball::Render(SDL_Renderer* renderer) const
 
 void Ball::StartBunt(Player* bunter, AttackDirection dir)
 {
+    if (!m_isBunted)
+    {
+        m_preBuntOwner = m_owner;
+    }
+
     m_isBunted = true;
-
-    m_preBuntSpeed = std::sqrt(m_vel.x * m_vel.x + m_vel.y * m_vel.y);
-    m_preBuntOwner = m_owner;
-
-    m_owner = nullptr; // Neutral (purple)
+    m_owner = nullptr; // neutral (purple)
 
     m_buntTimer = 0.0f;
     m_buntDuration = 1.0f;
 
-    m_buntStartX = m_rect.x;
-    m_buntStartY = m_rect.y;
-
-    // Default arc sizes
-    m_buntHeight = 45.0f;
-    m_buntDistance = 80.0f;
+    float buntSpeed = 80.0f;
+    float upwardForce = -50.0f; // upward in SDL is negative Y
 
     switch (dir)
     {
         case AttackDirection::Left:
-            m_buntDistance = -80.0f;
+            m_vel.x = -buntSpeed;
+            m_vel.y = upwardForce;
             break;
 
         case AttackDirection::Right:
-            m_buntDistance = 80.0f;
+            m_vel.x = buntSpeed;
+            m_vel.y = upwardForce;
             break;
 
         case AttackDirection::Up:
-            m_buntHeight = 80.0f;  // higher vertical arc
-            m_buntDistance = 0.0f;  // no horizontal drift
-            break;
-
-        case AttackDirection::Down:
-            // optional: short downward pop
-            m_buntHeight = -30.0f;
-            m_buntDistance = 0.0f;
+            m_vel.x = 0.0f;
+            m_vel.y = upwardForce * 1.2f; // more vertical arc
             break;
 
         default:
+            m_vel.x = 0.0f;
+            m_vel.y = upwardForce;
             break;
     }
 }
@@ -186,17 +147,7 @@ void Ball::setVelocity(Vector2 vel)
 void Ball::SetOwner(Player* player)
 {
     m_owner = player;
-    m_previousOwner = player;
     m_neutralTimer = 0.0f;
-}
-
-void Ball::EnterNeutral(float duration)
-{
-    if (m_owner != nullptr)
-        m_previousOwner = m_owner;
-
-    m_owner = nullptr;
-    m_neutralTimer = duration;
 }
 
 bool Ball::IsNeutral() const

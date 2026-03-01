@@ -21,7 +21,6 @@ public:
     void SetOwner(Player* player);
     Player* GetOwner() const;
 
-    void EnterNeutral(float duration);
     bool IsNeutral() const;
 
     void StartBunt(Player* bunter, AttackDirection dir);
@@ -31,7 +30,6 @@ private:
     Vector2 m_vel;
     float m_speed;
     Player* m_owner;
-    Player* m_previousOwner;
     float   m_neutralTimer;
     float   m_neutralDuration;
 

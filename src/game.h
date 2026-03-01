@@ -6,7 +6,6 @@
 #define PI 3.14
 
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
 #include <string>
 #include <cmath>
 

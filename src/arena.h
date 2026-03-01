@@ -4,6 +4,7 @@
 #include "game.h"
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 class Arena
 {
