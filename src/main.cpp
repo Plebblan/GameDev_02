@@ -33,10 +33,13 @@ int main(int argc, char* argv[])
         SDL_Log("Could not create mixer device: %s", SDL_GetError());
         return -1;
     }
-    MIX_Audio *attack_sound = MIX_LoadAudio(mixer, "SOUND/attack.mp3", true); 
-    MIX_Audio *bunt_sound = MIX_LoadAudio(mixer, "SOUND/bunt.mp3", true); 
+    MIX_Audio *attack_sound = MIX_LoadAudio(mixer, "sound/attack.mp3", true); 
+    MIX_Audio *bunt_sound = MIX_LoadAudio(mixer, "sound/bunt.mp3", true); 
     if (!attack_sound) {
-        SDL_Log("Load audio failed");
+        SDL_Log("Load attack.mp3 failed: %s", SDL_GetError());
+    }
+    if (!bunt_sound) {
+        SDL_Log("Load bunt.mp3 failed: %s", SDL_GetError());
     }
 
     GameWindow *window = new GameWindow();
@@ -94,6 +97,9 @@ int main(int argc, char* argv[])
     bool p2_control = true;
     int scoreboard[2] = {0};
     TTF_Font* fontScore = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 300);
+    if (!fontScore) {
+        SDL_Log("Failed to load font: %s", SDL_GetError());
+    }
     bool running = true;
 
     lastCounter = SDL_GetPerformanceCounter();
@@ -112,7 +118,7 @@ int main(int argc, char* argv[])
             {
                 if (event.key.scancode == SDL_SCANCODE_J)
                 {
-                    if (!MIX_PlayAudio(mixer, attack_sound)) {
+                    if (attack_sound && !MIX_PlayAudio(mixer, attack_sound)) {
                         SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
                     }
                     if (p1_control)
@@ -121,7 +127,7 @@ int main(int argc, char* argv[])
                 }
                 else if (event.key.scancode == SDL_SCANCODE_RSHIFT)
                 {
-                    if (!MIX_PlayAudio(mixer, attack_sound)) {
+                    if (attack_sound && !MIX_PlayAudio(mixer, attack_sound)) {
                         SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
                     }
                     if (p2_control)
@@ -146,7 +152,7 @@ int main(int argc, char* argv[])
                 }
                 else if (event.key.scancode == SDL_SCANCODE_K)
                 {
-                    if (!MIX_PlayAudio(mixer, bunt_sound)) {
+                    if (bunt_sound && !MIX_PlayAudio(mixer, bunt_sound)) {
                         SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
                     }
                     if (p1_control) {
@@ -158,7 +164,7 @@ int main(int argc, char* argv[])
                 }
                 else if (event.key.scancode == SDL_SCANCODE_PERIOD)
                 {
-                    if (!MIX_PlayAudio(mixer, bunt_sound)) {
+                    if (bunt_sound && !MIX_PlayAudio(mixer, bunt_sound)) {
                         SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
                     }
                     if (p2_control) {
@@ -227,7 +233,9 @@ int main(int argc, char* argv[])
         // ---- Render ----
         SDL_SetRenderDrawColor(window->renderer, 0, 0, 0, 255);
         SDL_RenderClear(window->renderer);
-        arena.DrawScoreboard(window->renderer, fontScore, scoreboard);
+        if (fontScore) {
+            arena.DrawScoreboard(window->renderer, fontScore, scoreboard);
+        }
         arena.Render(window->renderer);
         ball.Render(window->renderer);
         player.Render(window->renderer);
