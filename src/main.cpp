@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
             if (event.type == SDL_EVENT_KEY_DOWN &&
                 event.key.repeat == false)
             {
-                if (event.key.scancode == SDL_SCANCODE_J)
+                if (event.key.scancode == SDL_SCANCODE_F)
                 {
                     // if (attack_sound && !MIX_PlayAudio(mixer, attack_sound)) {
                     //     SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
@@ -142,15 +142,15 @@ int main(int argc, char* argv[])
                         clone.Reset(player.getPos());
                     }
                 }
-                else if (event.key.scancode == SDL_SCANCODE_COMMA){
+                else if (event.key.scancode == SDL_SCANCODE_I){
                     if (player2.cloneReady()){
                         clone2.Reset(player2.getPos());
                     }
                 }
-                else if (event.key.scancode == SDL_SCANCODE_SEMICOLON){
+                else if (event.key.scancode == SDL_SCANCODE_P){
                     if (!clone2.IsDead()) p2_control = !p2_control;
                 }
-                else if (event.key.scancode == SDL_SCANCODE_K)
+                else if (event.key.scancode == SDL_SCANCODE_G)
                 {
                     // if (bunt_sound && !MIX_PlayAudio(mixer, bunt_sound)) {
                     //     SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
                         clone2.Bunt(ball);
                     }
                 }
-                else if (event.key.scancode == SDL_SCANCODE_L)
+                else if (event.key.scancode == SDL_SCANCODE_H)
                 {
                     player.CatchThrow(ball);
                 }
@@ -216,6 +216,12 @@ int main(int argc, char* argv[])
                 player2.Reset(selectedMap.player2SpawnPos);
                 p2_control = true;
                 clone2.kill();
+            }
+            else if (clone.IsDead()){
+                p1_control = true;
+            }
+            else if (clone2.IsDead()){
+                p2_control = true;
             }
         }
         if (p1_control) player.HandleInput(keyboardState);

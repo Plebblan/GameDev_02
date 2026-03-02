@@ -71,11 +71,11 @@ void Player::HandleInput(const bool* keyboardState)
         jump  = keyboardState[SDL_SCANCODE_SPACE];
     }
     else {
-        left  = keyboardState[SDL_SCANCODE_LEFT];   // Phím mũi tên trái
-        right = keyboardState[SDL_SCANCODE_RIGHT];  // Phím mũi tên phải
-        up    = keyboardState[SDL_SCANCODE_UP];     // Phím mũi tên lên
-        down  = keyboardState[SDL_SCANCODE_DOWN];   // Phím mũi tên xuống
-        jump  = keyboardState[SDL_SCANCODE_SLASH];  // Phím gạch chéo (/)
+        left  = keyboardState[SDL_SCANCODE_K];   // Phím mũi tên trái
+        right = keyboardState[SDL_SCANCODE_SEMICOLON];  // Phím mũi tên phải
+        up    = keyboardState[SDL_SCANCODE_O];     // Phím mũi tên lên
+        down  = keyboardState[SDL_SCANCODE_L];   // Phím mũi tên xuống
+        jump  = keyboardState[SDL_SCANCODE_LEFT];  // Phím gạch chéo (/)
     }
      
     m_vel.x = 0.0f;
