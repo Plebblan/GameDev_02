@@ -129,29 +129,11 @@ int main(int argc, char* argv[])
                 }
                 else if (event.key.scancode == SDL_SCANCODE_L)
                 {
-<<<<<<< HEAD
-                    int t = player.CatchThrow(ball);
+                    player.CatchThrow(ball);
                 }
                 else if (event.key.scancode == SDL_SCANCODE_COMMA)
                 {
-                    int t = player2.CatchThrow(ball);
-=======
-                    if (p1_control) player.CatchThrow(ball);
-                    else clone.CatchThrow(ball);
-                }
-                else if (event.key.scancode == SDL_SCANCODE_COMMA)
-                {
-                    if (p2_control) player2.CatchThrow(ball);
-                    else clone2.CatchThrow(ball);
-                }
-            }
-
-            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
-            {
-                if (event.gbutton.button == SDL_GAMEPAD_BUTTON_SOUTH)
-                {
-                    player2.PerformAttack(ball);
->>>>>>> 60e8a378d391233235d83004005415d6ae3405b4
+                    player2.CatchThrow(ball);
                 }
             }
         }
