@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[])
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
         std::cout << "SDL Init failed: " << SDL_GetError() << "\n";
         return -1;
@@ -84,6 +84,10 @@ int main(int argc, char* argv[])
     Player player2(selectedMap.player2SpawnPos, 2);
     Player clone(selectedMap.player1SpawnPos);
     Player clone2(selectedMap.player2SpawnPos, 2);
+    player.setAlly(&clone);
+    clone.setAlly(&player);
+    player2.setAlly(&clone2);
+    clone2.setAlly(&player2);
     clone.kill();
     clone2.kill();
     bool p1_control = true;
@@ -145,14 +149,24 @@ int main(int argc, char* argv[])
                     if (!MIX_PlayAudio(mixer, bunt_sound)) {
                         SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
                     }
-                    player.Bunt(ball);
+                    if (p1_control) {
+                        player.Bunt(ball);
+                    }
+                    else {
+                        clone.Bunt(ball);
+                    }
                 }
                 else if (event.key.scancode == SDL_SCANCODE_PERIOD)
                 {
                     if (!MIX_PlayAudio(mixer, bunt_sound)) {
                         SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
                     }
-                    player2.Bunt(ball);
+                    if (p2_control) {
+                        player2.Bunt(ball);
+                    }
+                    else {
+                        clone2.Bunt(ball);
+                    }
                 }
                 else if (event.key.scancode == SDL_SCANCODE_L)
                 {
@@ -161,14 +175,6 @@ int main(int argc, char* argv[])
                 else if (event.key.scancode == SDL_SCANCODE_COMMA)
                 {
                     player2.CatchThrow(ball);
-                }
-            }
-
-            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
-            {
-                if (event.gbutton.button == SDL_GAMEPAD_BUTTON_SOUTH)
-                {
-                    player2.PerformAttack(ball);
                 }
             }
         }
@@ -185,8 +191,8 @@ int main(int argc, char* argv[])
         // ---- Input ----
         const bool* keyboardState = SDL_GetKeyboardState(nullptr);
         bool hurted = player.Check_collision(ball) or player2.Check_collision(ball);
-        if (!clone2.IsDead() and ball.GetOwner() != &player2) hurted = hurted or clone2.Check_collision(ball);
-        if (!clone.IsDead() and ball.GetOwner() != &player) hurted = hurted or clone.Check_collision(ball);
+        if (!clone2.IsDead()) hurted = hurted or clone2.Check_collision(ball);
+        if (!clone.IsDead()) hurted = hurted or clone.Check_collision(ball);
         if (hurted){
             ball.GetRect().x = selectedMap.ballSpawnPos.x;
             ball.GetRect().y = selectedMap.ballSpawnPos.y;
