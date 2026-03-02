@@ -17,30 +17,30 @@ int main(int argc, char* argv[])
     if (!TTF_Init()) {
         SDL_Log("TTF could not initialize! SDL_ttf Error: %s", SDL_GetError());
     }
-    if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS)) {
-        return -1;
-    }
+    // if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS)) {
+    //     return -1;
+    // }
 
-    // initialize SDL_mixer (SDL3 version)
-    if (!MIX_Init()) {
-        SDL_Log("SDL_mixer initialization failed: %s", SDL_GetError());
-        return -1;
-    }
+    // // initialize SDL_mixer (SDL3 version)
+    // if (!MIX_Init()) {
+    //     SDL_Log("SDL_mixer initialization failed: %s", SDL_GetError());
+    //     return -1;
+    // }
 
-    // create a mixer device (default spec)
-    MIX_Mixer *mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
-    if (!mixer) {
-        SDL_Log("Could not create mixer device: %s", SDL_GetError());
-        return -1;
-    }
-    MIX_Audio *attack_sound = MIX_LoadAudio(mixer, "sound/attack.mp3", true); 
-    MIX_Audio *bunt_sound = MIX_LoadAudio(mixer, "sound/bunt.mp3", true); 
-    if (!attack_sound) {
-        SDL_Log("Load attack.mp3 failed: %s", SDL_GetError());
-    }
-    if (!bunt_sound) {
-        SDL_Log("Load bunt.mp3 failed: %s", SDL_GetError());
-    }
+    // // create a mixer device (default spec)
+    // MIX_Mixer *mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
+    // if (!mixer) {
+    //     SDL_Log("Could not create mixer device: %s", SDL_GetError());
+    //     return -1;
+    // }
+    // MIX_Audio *attack_sound = MIX_LoadAudio(mixer, "sound/attack.mp3", true); 
+    // MIX_Audio *bunt_sound = MIX_LoadAudio(mixer, "sound/bunt.mp3", true); 
+    // if (!attack_sound) {
+    //     SDL_Log("Load attack.mp3 failed: %s", SDL_GetError());
+    // }
+    // if (!bunt_sound) {
+    //     SDL_Log("Load bunt.mp3 failed: %s", SDL_GetError());
+    // }
 
     GameWindow *window = new GameWindow();
     if (window->init("Ricochet test") != 0){
@@ -118,18 +118,18 @@ int main(int argc, char* argv[])
             {
                 if (event.key.scancode == SDL_SCANCODE_J)
                 {
-                    if (attack_sound && !MIX_PlayAudio(mixer, attack_sound)) {
-                        SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
-                    }
+                    // if (attack_sound && !MIX_PlayAudio(mixer, attack_sound)) {
+                    //     SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
+                    // }
                     if (p1_control)
                     player.PerformAttack(ball);
                     else clone.PerformAttack(ball);
                 }
                 else if (event.key.scancode == SDL_SCANCODE_RSHIFT)
                 {
-                    if (attack_sound && !MIX_PlayAudio(mixer, attack_sound)) {
-                        SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
-                    }
+                    // if (attack_sound && !MIX_PlayAudio(mixer, attack_sound)) {
+                    //     SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
+                    // }
                     if (p2_control)
                     player2.PerformAttack(ball);
                     else clone2.PerformAttack(ball);
@@ -152,9 +152,9 @@ int main(int argc, char* argv[])
                 }
                 else if (event.key.scancode == SDL_SCANCODE_K)
                 {
-                    if (bunt_sound && !MIX_PlayAudio(mixer, bunt_sound)) {
-                        SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
-                    }
+                    // if (bunt_sound && !MIX_PlayAudio(mixer, bunt_sound)) {
+                    //     SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
+                    // }
                     if (p1_control) {
                         player.Bunt(ball);
                     }
@@ -164,9 +164,9 @@ int main(int argc, char* argv[])
                 }
                 else if (event.key.scancode == SDL_SCANCODE_PERIOD)
                 {
-                    if (bunt_sound && !MIX_PlayAudio(mixer, bunt_sound)) {
-                        SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
-                    }
+                    // if (bunt_sound && !MIX_PlayAudio(mixer, bunt_sound)) {
+                    //     SDL_Log("Không thể phát nhạc: %s", SDL_GetError());
+                    // }
                     if (p2_control) {
                         player2.Bunt(ball);
                     }
@@ -246,12 +246,12 @@ int main(int argc, char* argv[])
     }
     delete(window);
     SDL_Quit();
-    if (attack_sound) {
-        MIX_DestroyAudio(attack_sound); 
-    }
-    if (bunt_sound) {
-        MIX_DestroyAudio(bunt_sound); 
-    }
+    // if (attack_sound) {
+    //     MIX_DestroyAudio(attack_sound); 
+    // }
+    // if (bunt_sound) {
+    //     MIX_DestroyAudio(bunt_sound); 
+    // }
     // if (mixer)
     //     MIX_DestroyMixer(mixer);
     MIX_Quit();
